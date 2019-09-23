@@ -3,7 +3,7 @@ import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 
-export default class componentName extends Component {
+export default class AppTitle extends Component {
     render() {
         return (
             <Grid container spacing={2} direction="column" alignContent="center">

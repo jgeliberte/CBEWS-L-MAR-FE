@@ -1,3 +1,3 @@
-import Login from '../src/components/login'
+import Dashboard from '../src/components/dashboard'
 
-export default Login;
+export default Dashboard;

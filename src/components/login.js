@@ -1,17 +1,17 @@
 import React, { Component } from 'react';
-import LogoCenter from '../reducers/logo_center'
-import AppHeader from '../reducers/app_header'
+import {LogoCenter, AppTitle} from '../reducers/index';
 import Container from '@material-ui/core/Container';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
+// import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 
 class login extends Component {
     render() {
         return (
             <Container>
                 <LogoCenter />
-                <AppHeader />
+                <AppTitle />
                 <Grid container direction="column" alignItems="center" justify="center">
                     <Grid item xs={3}>
                         <TextField
