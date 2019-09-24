@@ -1,7 +1,14 @@
 import React, { useState, Fragment } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import TransitionalModal from '../reducers/loading';
-import { Container, Grid, Fab, Typography } from '@material-ui/core';
+import {
+    Container, Grid, Fab, Typography,
+    Table, TableBody, TableCell, TableHead,
+    TableRow, Paper
+} from '@material-ui/core';
+import { render } from 'react-dom'
+import Highcharts from 'highcharts'
+import HighchartsReact from 'highcharts-react-official'
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -25,21 +32,125 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
+const tableStyle = makeStyles(theme => ({
+    root: {
+        width: '100%',
+        marginTop: theme.spacing(3),
+        overflowX: 'auto',
+    },
+    table: {
+        minWidth: 650,
+    },
+}));
+
 function AlertValidation() {
+
+    function createData(date_time, trigger, data_source, description) {
+        return { date_time, trigger, data_source, description };
+    }
+
+    const rows = [
+        createData('2019-10-06 04:00:00', 'Rainfall', 'RAIN_UMIG', 'Exceeded threshold level'),
+        createData('2019-10-06 04:00:00', 'MoMs', 'Crack C', 'New crack near Crack C'),
+    ];
+
+    const options = {
+        title: {
+            text: 'My chart'
+        },
+        series: [{
+            data: [1, 2, 3]
+        }]
+    }
+
+
+    const dt_classes = tableStyle();
+    const classes = useStyles();
+
     return (
         <Fragment>
             <Container fixed>
-                <Grid>
-
+                <Grid container align="center" spacing={10}>
+                    <Grid item xs={12}>
+                        <Paper className={dt_classes.root}>
+                            <Table className={dt_classes.table}>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>Date and time of trigger</TableCell>
+                                        <TableCell>Trigger</TableCell>
+                                        <TableCell>Data Source</TableCell>
+                                        <TableCell>Description</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {rows.map(row => (
+                                        <TableRow key={row.date_time}>
+                                            <TableCell component="th" scope="row">
+                                                {row.date_time}
+                                            </TableCell>
+                                            <TableCell>{row.trigger}</TableCell>
+                                            <TableCell>{row.data_source}</TableCell>
+                                            <TableCell>{row.description}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </Paper>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <HighchartsReact
+                            highcharts={Highcharts}
+                            options={options}
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <Typography variant="h2" className={[classes.label_paddings, classes.alert_level]}>
+                            Alert 2
+                        </Typography>
+                        <Typography variant="h5">
+                            As of October 6, 2019 04:00 AM
+                        </Typography>
+                        <Typography variant="h5" className={classes.label_paddings}>
+                            Rainfall Trigger: RAIN_MARG 1-day cumulative rainfall (100.00 mm) exceeded threshold (56.55mm)
+                        </Typography>
+                        <Typography variant="h5" className={classes.label_paddings}>
+                            Manifestation of Movements Trigger: New Crack near Crack C
+                        </Typography>
+                        <Typography variant="h5" className={classes.label_paddings}>
+                            Event Start: October 5, 2019 12:00 PM
+                        </Typography>
+                        <Typography variant="h5" className={classes.label_paddings}>
+                            Validity: October 7, 2019 12:00 PM
+                        </Typography>
+                        <Typography variant="h5" className={classes.label_paddings}>
+                            Recommended Response: Prepare for evacuation
+                        </Typography>
+                    </Grid>
+                    <Grid item xs={3}/>
+                    
+                    <Grid item xs={3}>
+                        <Fab variant="extended"
+                            color="primary"
+                            aria-label="add" className={classes.button_fluid}>
+                            Valid
+                        </Fab>
+                    </Grid>
+                    <Grid item xs={3}>
+                        <Fab variant="extended"
+                            color="primary"
+                            aria-label="add" className={classes.button_fluid}>
+                            Invalid
+                        </Fab>
+                    </Grid>
+                    <Grid item xs={3}/>
+                    <Grid item xs={12} style={{ padding: 100 }}></Grid>
                 </Grid>
             </Container>
         </Fragment>
-    )
+    );
 }
 
 function LatestCurrentAlert() {
-
-
     const classes = useStyles();
     const [modal, setModal] = useState([<TransitionalModal status={false} />])
 

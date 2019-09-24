@@ -1,5 +1,5 @@
 import React, { useState, Fragment } from 'react';
-import { Container, Grid, Fab } from '@material-ui/core';
+import { Container, Grid, Fab, GridList, GridListTile } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { AlertValidation, LatestCurrentAlert } from './alert_generation_feature'
 
@@ -78,10 +78,8 @@ function AlertGeneration() {
                             <Grid item={true} xs={3} style={{ marginTop: '30%' }} />
                         </Grid>
                     </Grid>
-                    <Grid item xs={9}>
-                        <Container fixed maxWidth="lg">
-                            {feature}
-                        </Container>
+                    <Grid item xs={9} >
+                        {feature}
                     </Grid>
                 </Grid>
             </Container>
