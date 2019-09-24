@@ -13,13 +13,12 @@ class login extends Component {
                 <LogoCenter />
                 <AppTitle />
                 <Grid container direction="column" alignItems="center" justify="center">
-                    <Grid item xs={3}>
+                    <Grid item xs={3} style={{backgroundColor: 'red'}}>
                         <TextField
                             id="username"
                             label="Username"
                             placeholder="E.g. JuanDelaCruz"
                             margin="normal"
-                            fullWidth
                             inputProps={{
                                 style: { textAlign: "center" }
                             }}
@@ -28,14 +27,13 @@ class login extends Component {
                             }}
                         />
                     </Grid>
-                    <Grid item xs={3}>
+                    <Grid item xs={4} style={{backgroundColor: 'blue'}}>
                         <TextField
                             id="password"
                             label="Password"
                             type="password"
                             autoComplete="current-password"
                             margin="normal"
-                            fullWidth
                             inputProps={{
                                 style: { textAlign: "center" }
                             }}
