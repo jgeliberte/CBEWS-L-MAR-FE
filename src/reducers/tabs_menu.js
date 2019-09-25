@@ -32,7 +32,9 @@ export default function TabsMenu() {
             <Tab value={"maintenance"} label="Maintenance" />
           </Tabs>
         </Paper>
-        {body}
+        <Box style={{ marginTop: 10, marginBottom: 10 }}>
+          {body}
+        </Box>
       </Box>
     </div>
   );

@@ -8,7 +8,7 @@ function RouterApp() {
         <Router>
             <Switch>
                 <Route path="/dashboard" component={Dashboard} />
-                <Route exact path="/login" component={Login} />
+                <Route exact path="/" component={Login} />
                 <Route render={
                     () => <h3> Page not found</h3>
                 } />
