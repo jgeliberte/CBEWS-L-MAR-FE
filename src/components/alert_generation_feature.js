@@ -49,6 +49,14 @@ function AlertValidation() {
         return { date_time, trigger, data_source, description };
     }
 
+    function validateAlert(status) {
+        if (status === true) {
+            alert("Alert valid!")
+        } else {
+            alert("Alert invalid!")
+        }
+    }
+
     const rows = [
         createData('2019-10-06 04:00:00', 'Rainfall', 'RAIN_UMIG', 'Exceeded threshold level'),
         createData('2019-10-06 04:00:00', 'MoMs', 'Crack C', 'New crack near Crack C'),
@@ -131,19 +139,20 @@ function AlertValidation() {
                     <Grid item xs={3}>
                         <Fab variant="extended"
                             color="primary"
-                            aria-label="add" className={classes.button_fluid}>
+                            aria-label="add" className={classes.button_fluid}
+                            onClick={()=> {validateAlert(true)}}>
                             Valid
                         </Fab>
                     </Grid>
                     <Grid item xs={3}>
                         <Fab variant="extended"
                             color="primary"
-                            aria-label="add" className={classes.button_fluid}>
+                            aria-label="add" className={classes.button_fluid}
+                            onClick={()=> {validateAlert(false)}}>
                             Invalid
                         </Fab>
                     </Grid>
                     <Grid item xs={3}/>
-                    <Grid item xs={12} style={{ padding: 100 }}></Grid>
                 </Grid>
             </Container>
         </Fragment>

@@ -5,7 +5,8 @@ import {
     Events,
     GroundData,
     SensorData,
-    Maintenance
+    Maintenance,
+    Home
 } from '../components/menu'
 
 function handleContent(app_key) {
@@ -29,8 +30,11 @@ function handleContent(app_key) {
         case "maintenance":
             body_content = [<Maintenance />]
             break;
+        case "home":
+            body_content = [<Home />]
+            break;
         default:
-            body_content = [<AlertGeneration />]
+            body_content = [<Home />]
             break;
     }
     return body_content

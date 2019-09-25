@@ -4,6 +4,7 @@ import GroundData from './ground_data';
 import SensorData from './sensor_data';
 import Maintenance from './maintenance';
 import Events from './events';
+import Home from './home';
 
 export {
     AlertGeneration,
@@ -11,5 +12,6 @@ export {
     GroundData,
     SensorData,
     Maintenance,
-    Events
+    Events,
+    Home
 }
