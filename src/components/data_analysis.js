@@ -25,7 +25,7 @@ const useStyles = makeStyles(theme => ({
 function DataAnalysis() {
     const classes = useStyles();
 
-    const [feature, setFeature] = useState([<RainfallPlot />]);
+    const [feature, setFeature] = useState([<RainfallPlot feature={"data_analysis"}/>]);
     const [rp, rpActive] = useState("primary");
     const [sfp, sfpActive] = useState("");
     const [sbp, sbpActive] = useState("");
@@ -37,25 +37,25 @@ function DataAnalysis() {
                 rpActive("primary");
                 sfpActive("");
                 sbpActive("");
-                return_feat = [<RainfallPlot />];
+                return_feat = [<RainfallPlot feature={"data_analysis"} />];
                 break;
             case "surficial":
                 sfpActive("primary");
                 rpActive("");
                 sbpActive("");
-                return_feat = [<SurficialPlot />];
+                return_feat = [<SurficialPlot feature={"data_analysis"} />];
                 break;
             case "subsurface":
                 sfpActive("");
                 rpActive("");
                 sbpActive("primary");
-                return_feat = [<SubsurfacePlot />];
+                return_feat = [<SubsurfacePlot feature={"data_analysis"} />];
                 break;
             default:
                 rpActive("primary")
                 sfpActive("");
                 sbpActive("");
-                return_feat = [<RainfallPlot />];
+                return_feat = [<RainfallPlot feature={"data_analysis"} />];
                 break;
         }
         setFeature(return_feat)

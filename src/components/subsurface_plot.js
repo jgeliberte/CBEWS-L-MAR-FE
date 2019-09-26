@@ -1,15 +1,22 @@
-import React, { Fragment, useState, useEffect } from "react";
+import React, { Fragment, useState } from "react";
 
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
-import { Button, withStyles, Grid, Paper } from "@material-ui/core";
+import { Fab, Container, Grid, Paper, makeStyles } from "@material-ui/core";
 import moment from "moment";
-
-import { isWidthDown } from "@material-ui/core/withWidth";
 import { getSubsurfacePlotData } from "./sample_subsurface_data_not_final";
+import TransitionalModal from '../reducers/loading';
 
+const useStyles = makeStyles(theme => ({
 
-function assignColorToEachSeries (data_array) {
+    button_fluid: {
+        width: '90%',
+        padding: 10
+    },
+
+}));
+
+function assignColorToEachSeries(data_array) {
     const size = data_array.length;
     const rainbow_colors = makeRainbowColors(size);
     for (let i = 0; i < size; i += 1) {
@@ -19,7 +26,7 @@ function assignColorToEachSeries (data_array) {
 }
 
 let rainbow_colors = [];
-function makeRainbowColors (size) {
+function makeRainbowColors(size) {
     const rainbow = [...rainbow_colors];
     if (rainbow.length !== size) {
         for (let i = 0; i < size; i += 1) {
@@ -34,19 +41,19 @@ function makeRainbowColors (size) {
     return rainbow;
 }
 
-function sinToHex ({ index, size }, phase) {
+function sinToHex({ index, size }, phase) {
     const sin = Math.sin(Math.PI / size * 2 * index + phase);
     const int = Math.floor(sin * 127) + 128;
     const hex = int.toString(16);
     return hex.length === 1 ? `0${hex}` : hex;
 }
 
-function plotColumnPosition (column_data, type) {
+function plotColumnPosition(column_data, type) {
     const { data: data_list } = column_data;
     const col_position_data = [];
     data_list.forEach(({ orientation, data: series_list }) => {
         const colored_data = assignColorToEachSeries(series_list);
-        const col_data = { 
+        const col_data = {
             ...column_data,
             data: colored_data,
             orientation,
@@ -58,7 +65,7 @@ function plotColumnPosition (column_data, type) {
     return col_position_data;
 }
 
-function plotDisplacement (column_data, type) {
+function plotDisplacement(column_data, type) {
     const displacement_data = [];
     column_data.forEach((data_list, index) => {
         const { data: series_list, annotations } = data_list;
@@ -84,7 +91,7 @@ function plotDisplacement (column_data, type) {
     return displacement_data;
 }
 
-function plotVelocityAlerts (column_data, type) {
+function plotVelocityAlerts(column_data, type) {
     const { velocity_alerts, timestamps_per_node } = column_data;
     const velocity_data = [];
     const processed_data = assignColorToEachSeries(timestamps_per_node);
@@ -122,7 +129,7 @@ function plotVelocityAlerts (column_data, type) {
     return velocity_data;
 }
 
-function prepareColumnPositionChartOption (set_data, input) {
+function prepareColumnPositionChartOption(set_data, input) {
     const { data, max_position, min_position, orientation } = set_data;
     const { subsurface_column } = input;
     const xAxisTitle = orientation === "across_slope" ? "Across Slope" : "Downslope";
@@ -163,7 +170,7 @@ function prepareColumnPositionChartOption (set_data, input) {
             }
         },
         tooltip: {
-            formatter () {
+            formatter() {
                 return `Timestamp: <b>${moment(this.series.name).format("dddd, MMM D, HH:mm")}</b><br>Depth: <b>${this.y}</b><br>Displacement: <b>${this.x}</b>`;
             }
         },
@@ -188,7 +195,7 @@ function prepareColumnPositionChartOption (set_data, input) {
             align: "right",
             layout: "vertical",
             verticalAlign: "middle",
-            labelFormatter () {
+            labelFormatter() {
                 return `${moment(this.name).format("MM/DD, HH:mm")}`;
             }
         },
@@ -196,7 +203,7 @@ function prepareColumnPositionChartOption (set_data, input) {
     };
 }
 
-function prepareDisplacementChartOption (set_data, form) {
+function prepareDisplacementChartOption(set_data, form) {
     const { orientation, data, annotations } = set_data;
     const { subsurface_column, ts_end } = form;
     const xAxisTitle = orientation === "across_slope" ? "Across Slope" : "Downslope";
@@ -264,7 +271,7 @@ function prepareDisplacementChartOption (set_data, form) {
     };
 }
 
-function prepareVelocityAlertsOption (set_data, form) {
+function prepareVelocityAlertsOption(set_data, form) {
     const { data, orientation } = set_data;
     const { subsurface_column, ts_end } = form;
 
@@ -321,13 +328,13 @@ function prepareVelocityAlertsOption (set_data, form) {
                 text: "<b>Depth (m)</b>"
             },
             labels: {
-                formatter () {
+                formatter() {
                     return this.value;
                 }
             }
         },
         tooltip: {
-            formatter () {
+            formatter() {
                 return `<b>${moment(this.x).format("DD MMM YYYY, HH:mm")}</b>`;
             }
         },
@@ -343,18 +350,40 @@ function prepareVelocityAlertsOption (set_data, form) {
     };
 }
 
-function SubsurfacePlot () {
+function SubsurfacePlot(props) {
+    const {feature} = props;
     const tsm_sensor = 'MARTA'
     const [timestamps, setTimestamps] = useState({ start: "2019-06-24 01:00:00", end: "2019-06-17 01:00:00" });
     const input = { ts_end: timestamps.end, ts_start: timestamps.start, subsurface_column: tsm_sensor };
-    
+    const classes = useStyles();
+    const [modal, setModal] = useState([<TransitionalModal status={false} />])
     let processed_data = []
+
+
+    function downloadGraph() {
+        setModal([<TransitionalModal status={true} />])
+        setTimeout(() => {
+            setModal([<TransitionalModal status={false} />])
+            alert("Download success!")
+        }, 3000)
+    }
+
+    function printGraph() {
+        setModal([<TransitionalModal status={true} />])
+        setTimeout(() => {
+            setModal([<TransitionalModal status={false} />])
+            alert("Print success!")
+        }, 3000)
+    }
 
     getSubsurfacePlotData.forEach(({ type, data }) => {
         let temp = [];
-        if (type === "column_position") temp = plotColumnPosition(data, type);
-        // else if (type === "displacement") temp = plotDisplacement(data, type);
-        // else if (type === "velocity_alerts") temp = plotVelocityAlerts(data, type);
+        if (feature === "data_analysis") {
+            if (type === "column_position") temp = plotColumnPosition(data, type);
+        } else {
+            if (type === "displacement") temp = plotDisplacement(data, type);
+            else if (type === "velocity_alerts") temp = plotVelocityAlerts(data, type);
+        }
         processed_data.push(temp)
     });
 
@@ -365,33 +394,59 @@ function SubsurfacePlot () {
         data.forEach(inner => {
             const { type } = inner;
             let option;
-            if (type === "column_position") option = prepareColumnPositionChartOption(inner, input);
-            // else if (type === "displacement") option = prepareDisplacementChartOption(inner, input);
-            // else if (type === "velocity_alerts") option = prepareVelocityAlertsOption(inner, input);
+            if (feature === "data_analysis") {
+                if (type === "column_position") option = prepareColumnPositionChartOption(inner, input);
+            } else {
+                if (type === "displacement") option = prepareDisplacementChartOption(inner, input);
+                else if (type === "velocity_alerts") option = prepareVelocityAlertsOption(inner, input);
+            }
             options.push(option);
         });
     });
 
     return (
         <Fragment>
-            <div style={{ marginTop: 16 }}>
-                <Grid container spacing={4}>
-                    {
-                        options.map((option, i) => {
-                            return (
-                                <Grid item xs={12} md={6} key={i}>
-                                    <Paper>
-                                        <HighchartsReact
-                                            highcharts={Highcharts}
-                                            options={option}
-                                        />
-                                    </Paper>
-                                </Grid>
-                            );
-                        })
-                    }
-                </Grid>
-            </div>
+            <Container>
+                <div style={{ marginTop: 16 }}>
+                    <Grid container spacing={4}>
+                        {
+                            options.map((option, i) => {
+                                return (
+                                    <Grid item xs={12} md={6} key={i}>
+                                        <Paper>
+                                            <HighchartsReact
+                                                highcharts={Highcharts}
+                                                options={option}
+                                            />
+                                        </Paper>
+                                    </Grid>
+                                );
+                            })
+                        }
+                        <Grid container align="center" style={{ paddingTop: 20 }}>
+                            <Grid item xs={3} />
+                            <Grid item xs={3}>
+                                <Fab variant="extended"
+                                    color="primary"
+                                    aria-label="add" className={classes.button_fluid}
+                                    onClick={() => {downloadGraph()}}>
+                                    Download
+                        </Fab>
+                            </Grid>
+                            <Grid item xs={3}>
+                                <Fab variant="extended"
+                                    color="primary"
+                                    aria-label="add" className={classes.button_fluid}
+                                    onClick={() => {printGraph()}}>
+                                    Print
+                        </Fab>
+                            </Grid>
+                            <Grid item xs={3} />
+                        </Grid>
+                    </Grid>
+                </div>
+            </Container>
+            {modal}
         </Fragment>
     );
 }

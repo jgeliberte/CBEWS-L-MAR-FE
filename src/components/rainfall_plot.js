@@ -4,6 +4,7 @@ import HighchartsReact from "highcharts-react-official";
 import * as moment from "moment";
 import { Grid, Paper, Container, Fab, makeStyles } from "@material-ui/core";
 import { sample_rain_data } from "./sample_rain_data._not_final";
+import TransitionalModal from '../reducers/loading';
 window.moment = moment;
 
 const rainfall_colors = {
@@ -43,7 +44,6 @@ function prepareRainfallData (set) {
     });
 
     const null_processed = null_ranges.map(({ from, to }) => ({ from, to, color: "rgba(68, 170, 213, 0.3)" }));
-
     return { set, series_data, max_rval_data, null_processed };
 }
 
@@ -244,8 +244,8 @@ function syncExtremes (e) {
 }
 
 
-function RainfallPlot () {
-
+function RainfallPlot (props) {
+    const {feature} = props
     const rainfall_data = sample_rain_data;
     const input = { ts_end: "2019-06-24 01:00:00", ts_start: "2019-06-17 01:00:00", site_code: "MAR" };
 
@@ -256,31 +256,61 @@ function RainfallPlot () {
     });
 
     const [options, setOptions] = useState(renderGraph());
+    const [modal, setModal] = useState([<TransitionalModal status={false} />])
     const classes = useStyles();
 
     function renderGraph() {
         const temp = [];
         processed_data.forEach(data => {
-            // const instantaneous = prepareInstantaneousRainfallChartOption(data, input);
-            const cumulative = prepareCumulativeRainfallChartOption(data, input);
-            temp.push({ cumulative });
+            if (feature === "data_analysis") {
+                const cumulative = prepareCumulativeRainfallChartOption(data, input);
+                temp.push({ cumulative });
+            } else {
+                const instantaneous = prepareInstantaneousRainfallChartOption(data, input);
+                temp.push({ instantaneous });
+            }
+            
         });
         return temp
     }
+
+
+    function downloadGraph() {
+        setModal([<TransitionalModal status={true} />])
+        setTimeout(() => {
+            setModal([<TransitionalModal status={false} />])
+            alert("Download success!")
+        }, 3000)
+    }
+
+    function printGraph() {
+        setModal([<TransitionalModal status={true} />])
+        setTimeout(() => {
+            setModal([<TransitionalModal status={false} />])
+            alert("Print success!")
+        }, 3000)
+    }
+
     return (
         <Fragment>
             <Container>
                 <Grid container spacing={4}>
                     {
                         options.map((option, i) => {
-                            const {cumulative } = option;
+                            let opt;
+                            if (feature === "data_analysis") {
+                                opt = option.cumulative;
+                            } else {
+                                opt = option.instantaneous;
+                            }
+                            
                             return (
                                 <Fragment key={i}>
                                     <Grid item xs={12} md={6}>
                                         <Paper>
                                             <HighchartsReact
                                                 highcharts={Highcharts}
-                                                options={cumulative}
+                                                options={opt}
                                             />
                                         </Paper>
                                     </Grid>
@@ -295,7 +325,7 @@ function RainfallPlot () {
                         <Fab variant="extended"
                             color="primary"
                             aria-label="add" className={classes.button_fluid}
-                            onClick={()=> {}}>
+                            onClick={()=> {downloadGraph()}}>
                             Download
                         </Fab>
                     </Grid>
@@ -303,13 +333,14 @@ function RainfallPlot () {
                         <Fab variant="extended"
                             color="primary"
                             aria-label="add" className={classes.button_fluid}
-                            onClick={()=> {}}>
+                            onClick={()=> {printGraph()}}>
                             Print
                         </Fab>
                     </Grid>
                     <Grid item xs={3}/>
                 </Grid>
             </Container>
+            {modal}
         </Fragment>
     );
 }

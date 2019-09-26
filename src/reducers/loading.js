@@ -1,6 +1,6 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { CircularProgress, Modal, Backdrop, Fade, Dialog, DialogTitle } from '@material-ui/core/'
+import { CircularProgress, Dialog, DialogTitle } from '@material-ui/core/'
 
 const useStyles = makeStyles(theme => ({
     modal: {
@@ -16,7 +16,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 
-export default function TransitionsModal({ status }) {
+function TransitionsModal({ status }) {
     const classes = useStyles();
 
     return (
@@ -26,3 +26,4 @@ export default function TransitionsModal({ status }) {
 
     );
 }
+export default TransitionsModal
