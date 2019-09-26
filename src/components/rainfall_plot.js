@@ -261,9 +261,9 @@ function RainfallPlot () {
     function renderGraph() {
         const temp = [];
         processed_data.forEach(data => {
-            const instantaneous = prepareInstantaneousRainfallChartOption(data, input);
+            // const instantaneous = prepareInstantaneousRainfallChartOption(data, input);
             const cumulative = prepareCumulativeRainfallChartOption(data, input);
-            temp.push({ instantaneous, cumulative });
+            temp.push({ cumulative });
         });
         return temp
     }
@@ -273,18 +273,9 @@ function RainfallPlot () {
                 <Grid container spacing={4}>
                     {
                         options.map((option, i) => {
-                            const { instantaneous, cumulative } = option;
+                            const {cumulative } = option;
                             return (
                                 <Fragment key={i}>
-                                    <Grid item xs={12} md={6}>
-                                        <Paper>
-                                            <HighchartsReact
-                                                highcharts={Highcharts}
-                                                options={instantaneous}
-                                            />
-                                        </Paper>
-                                    </Grid>
-
                                     <Grid item xs={12} md={6}>
                                         <Paper>
                                             <HighchartsReact
