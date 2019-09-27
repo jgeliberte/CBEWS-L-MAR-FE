@@ -2,7 +2,7 @@ import React, { useState, Fragment } from 'react';
 import { Container, Grid, Fab } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import RainfallPlot from './rainfall_plot';
-import SurficialPlot from './surficial_plot';
+import EarthquakeTables from './eq_tables';
 import SubsurfacePlot from './subsurface_plot';
 
 
@@ -43,7 +43,7 @@ function SensorData() {
                 sfpActive("primary");
                 rpActive("");
                 sbpActive("");
-                return_feat = [<SurficialPlot feature={"sensor_data"}/>];
+                return_feat = [<EarthquakeTables/>];
                 break;
             case "subsurface":
                 sfpActive("");

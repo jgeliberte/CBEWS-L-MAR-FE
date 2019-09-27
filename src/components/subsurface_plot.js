@@ -431,7 +431,7 @@ function SubsurfacePlot(props) {
                                     aria-label="add" className={classes.button_fluid}
                                     onClick={() => {downloadGraph()}}>
                                     Download
-                        </Fab>
+                                </Fab>
                             </Grid>
                             <Grid item xs={3}>
                                 <Fab variant="extended"
@@ -439,7 +439,7 @@ function SubsurfacePlot(props) {
                                     aria-label="add" className={classes.button_fluid}
                                     onClick={() => {printGraph()}}>
                                     Print
-                        </Fab>
+                                </Fab>
                             </Grid>
                             <Grid item xs={3} />
                         </Grid>

@@ -6,7 +6,6 @@ import {
     Table, TableBody, TableCell, TableHead,
     TableRow, Paper
 } from '@material-ui/core';
-import { render } from 'react-dom'
 import Highcharts from 'highcharts'
 import HighchartsReact from 'highcharts-react-official'
 

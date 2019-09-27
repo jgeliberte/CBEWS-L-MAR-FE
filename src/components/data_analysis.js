@@ -99,7 +99,7 @@ function DataAnalysis() {
                         </Grid> 
                     </Grid>
                     <Grid item xs={9} >
-                        <div style={{overflow: 'auto', height: 650}}>
+                        <div style={{overflow: 'auto', height: 660}}>
                             {feature}
                         </div>
                     </Grid>

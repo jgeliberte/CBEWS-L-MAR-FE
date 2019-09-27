@@ -1,10 +1,18 @@
-import React, {useState, useEffect, Fragment} from 'react';
+import React, { useState, Fragment } from 'react';
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import * as moment from "moment";
-import { Grid, Paper, Container, Fab, makeStyles } from "@material-ui/core";
+import { Grid, Paper, Container,
+     Fab, makeStyles } from "@material-ui/core";
 import { sample_rain_data } from "./sample_rain_data._not_final";
 import TransitionalModal from '../reducers/loading';
+import {
+    MuiPickersUtilsProvider,
+    KeyboardTimePicker,
+    KeyboardDatePicker,
+} from '@material-ui/pickers';
+import MomentUtils from '@date-io/moment';
+
 window.moment = moment;
 
 const rainfall_colors = {
@@ -22,8 +30,8 @@ const useStyles = makeStyles(theme => ({
 
 }));
 
-function prepareRainfallData (set) {
-    const { null_ranges } = set;  
+function prepareRainfallData(set) {
+    const { null_ranges } = set;
     const series_data = [];
     const max_rval_data = [];
 
@@ -47,7 +55,7 @@ function prepareRainfallData (set) {
     return { set, series_data, max_rval_data, null_processed };
 }
 
-function prepareInstantaneousRainfallChartOption (row, input) {
+function prepareInstantaneousRainfallChartOption(row, input) {
     const { set, max_rval_data, null_processed } = row;
     const {
         distance, max_rval, gauge_name
@@ -124,14 +132,14 @@ function prepareInstantaneousRainfallChartOption (row, input) {
     };
 }
 
-function prepareCumulativeRainfallChartOption (row, input) {
+function prepareCumulativeRainfallChartOption(row, input) {
     const { set, series_data } = row;
     const {
-        distance, max_72h, 
+        distance, max_72h,
         threshold_value: max_rain_2year, gauge_name
     } = set;
     const { ts_start, ts_end, site_code } = input;
-    
+
     return {
         series: series_data,
         chart: {
@@ -187,7 +195,7 @@ function prepareCumulativeRainfallChartOption (row, input) {
                 zIndex: 0,
                 label: {
                     text: `24-hr threshold (${max_rain_2year / 2})`
-    
+
                 }
             }, {
                 value: max_rain_2year,
@@ -222,13 +230,13 @@ function prepareCumulativeRainfallChartOption (row, input) {
     };
 }
 
-function createRainPlotSubtitle (distance, gauge_name) {
+function createRainPlotSubtitle(distance, gauge_name) {
     const source = gauge_name.toUpperCase();
     const subtitle = distance === null ? source : `${source} (${distance} KM)`;
     return subtitle;
 }
 
-function syncExtremes (e) {
+function syncExtremes(e) {
     const this_chart = this.chart;
     const { charts } = Highcharts;
 
@@ -243,11 +251,12 @@ function syncExtremes (e) {
     }
 }
 
-
-function RainfallPlot (props) {
-    const {feature} = props
+function RainfallPlot(props) {
+    const { feature } = props
     const rainfall_data = sample_rain_data;
     const input = { ts_end: "2019-06-24 01:00:00", ts_start: "2019-06-17 01:00:00", site_code: "MAR" };
+    const [selectedStartDate, setSelectedStartDate] = useState(new Date());
+    const [selectedEndDate, setSelectedEndDate] = useState(new Date());
 
     const processed_data = [];
     rainfall_data.forEach(set => {
@@ -269,11 +278,100 @@ function RainfallPlot (props) {
                 const instantaneous = prepareInstantaneousRainfallChartOption(data, input);
                 temp.push({ instantaneous });
             }
-            
+
         });
         return temp
     }
 
+    const handleSelectedStartDate = date => {
+        setSelectedStartDate(date);
+    };
+
+    const handleSelectedEndDate = date => {
+        setSelectedEndDate(date);
+    };
+
+    function enableDownloadPrint(feature) {
+        if (feature === "data_analysis") {
+            return (
+                <Grid container align="center" style={{ paddingTop: 20 }}>
+                    <Grid item xs={3} />
+                    <Grid item xs={3}>
+                        <Fab variant="extended"
+                            color="primary"
+                            aria-label="add" className={classes.button_fluid}
+                            onClick={() => { downloadGraph() }}>
+                            Download
+                </Fab>
+                    </Grid>
+                    <Grid item xs={3}>
+                        <Fab variant="extended"
+                            color="primary"
+                            aria-label="add" className={classes.button_fluid}
+                            onClick={() => { printGraph() }}>
+                            Print
+                </Fab>
+                    </Grid>
+                    <Grid item xs={3} />
+                </Grid>
+            )
+        }
+    }
+
+    function enableDataGeneratorOptions(feature) {
+        let ret_val = [];
+        if (feature === "sensor_data") {
+            ret_val.push(
+                <Grid container align="center" style={{ paddingTop: 20 }}>
+                    <Grid item xs={2} />
+                    <Grid item xs={3}>
+                        <MuiPickersUtilsProvider utils={MomentUtils}>
+                            <KeyboardDatePicker
+                                disableToolbar
+                                variant="inline"
+                                format="MM-DD-YYYY HH:mm:ss"
+                                margin="normal"
+                                id="date-picker-start"
+                                label="Date Start"
+                                value={selectedStartDate}
+                                onChange={handleSelectedStartDate}
+                                KeyboardButtonProps={{
+                                    'aria-label': 'change date',
+                                }}
+                            />
+                        </MuiPickersUtilsProvider>
+                    </Grid>
+                    <Grid item xs={3}>
+                        <MuiPickersUtilsProvider utils={MomentUtils}>
+                            <KeyboardDatePicker
+                                disableToolbar
+                                variant="inline"
+                                format="MM-DD-YYYY HH:mm:ss"
+                                margin="normal"
+                                id="date-picker-end"
+                                label="Date End"
+                                value={selectedEndDate}
+                                onChange={handleSelectedEndDate}
+                                KeyboardButtonProps={{
+                                    'aria-label': 'change date',
+                                }}
+                            />
+                        </MuiPickersUtilsProvider>
+                    </Grid>
+                    <Grid item xs={2}>
+                        <Fab variant="extended"
+                            color="primary"
+                            aria-label="add" className={classes.button_fluid}
+                            onClick={() => { }}>
+                            Generate
+                        </Fab>
+                    </Grid>
+                    <Grid item xs={2} />
+                </Grid>
+            )
+        }
+        return ret_val;
+    };
 
     function downloadGraph() {
         setModal([<TransitionalModal status={true} />])
@@ -298,15 +396,24 @@ function RainfallPlot (props) {
                     {
                         options.map((option, i) => {
                             let opt;
+                            let grid_size;
+                            let instantaneous_table = []
                             if (feature === "data_analysis") {
                                 opt = option.cumulative;
+                                grid_size = 12
                             } else {
                                 opt = option.instantaneous;
+                                grid_size = 6
+                                instantaneous_table.push(
+                                    <Grid item xs={grid_size} md={6}>
+                                        TEST
+                                    </Grid>
+                                )
                             }
-                            
+
                             return (
                                 <Fragment key={i}>
-                                    <Grid item xs={12} md={6}>
+                                    <Grid item xs={grid_size} md={6}>
                                         <Paper>
                                             <HighchartsReact
                                                 highcharts={Highcharts}
@@ -314,31 +421,14 @@ function RainfallPlot (props) {
                                             />
                                         </Paper>
                                     </Grid>
+                                    {instantaneous_table}
                                 </Fragment>
                             );
                         })
                     }
                 </Grid>
-                <Grid container align="center" style={{paddingTop: 20}}>
-                    <Grid item xs={3}/>
-                    <Grid item xs={3}>
-                        <Fab variant="extended"
-                            color="primary"
-                            aria-label="add" className={classes.button_fluid}
-                            onClick={()=> {downloadGraph()}}>
-                            Download
-                        </Fab>
-                    </Grid>
-                    <Grid item xs={3}>
-                        <Fab variant="extended"
-                            color="primary"
-                            aria-label="add" className={classes.button_fluid}
-                            onClick={()=> {printGraph()}}>
-                            Print
-                        </Fab>
-                    </Grid>
-                    <Grid item xs={3}/>
-                </Grid>
+                {enableDownloadPrint(feature)}
+                {enableDataGeneratorOptions(feature)}
             </Container>
             {modal}
         </Fragment>
