@@ -3,7 +3,9 @@ import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import * as moment from "moment";
 import { Grid, Paper, Container,
-     Fab, makeStyles } from "@material-ui/core";
+     Fab, makeStyles, Table,
+     TableBody, TableCell, TableHead,
+     TableRow } from "@material-ui/core";
 import { sample_rain_data } from "./sample_rain_data._not_final";
 import TransitionalModal from '../reducers/loading';
 import {
@@ -22,12 +24,21 @@ const rainfall_colors = {
 };
 
 const useStyles = makeStyles(theme => ({
-
     button_fluid: {
         width: '90%',
         padding: 10
     },
+}));
 
+const tableStyle = makeStyles(theme => ({
+    root: {
+        width: '100%',
+        marginTop: theme.spacing(3),
+        overflowX: 'auto',
+    },
+    table: {
+        minWidth: 100,
+    },
 }));
 
 function prepareRainfallData(set) {
@@ -267,6 +278,7 @@ function RainfallPlot(props) {
     const [options, setOptions] = useState(renderGraph());
     const [modal, setModal] = useState([<TransitionalModal status={false} />])
     const classes = useStyles();
+    const dt_classes = tableStyle();
 
     function renderGraph() {
         const temp = [];
@@ -389,6 +401,20 @@ function RainfallPlot(props) {
         }, 3000)
     }
 
+    function createData(date_time, mm ) {
+        return { date_time, mm};
+    }
+
+    const rows = [
+        createData('2019-10-06 04:00:00', '30 mm'),
+        createData('2019-10-06 03:30:00', '02 mm'),
+        createData('2019-10-06 03:00:00', '07 mm'),
+        createData('2019-10-06 02:30:00', '10 mm'),
+        createData('2019-10-06 02:00:00', '00 mm'),
+        createData('2019-10-06 01:30:00', '01 mm'),
+        createData('2019-10-06 01:00:00', '00 mm'),
+    ];
+
     return (
         <Fragment>
             <Container>
@@ -405,9 +431,29 @@ function RainfallPlot(props) {
                                 opt = option.instantaneous;
                                 grid_size = 6
                                 instantaneous_table.push(
-                                    <Grid item xs={grid_size} md={6}>
-                                        TEST
-                                    </Grid>
+                                    
+                        <Grid item xs={grid_size}>
+                        <Paper>
+                            <Table className={dt_classes.table}>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>Date and time</TableCell>
+                                        <TableCell>Rain (mm / 30 mins)</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {rows.map(row => (
+                                        <TableRow key={row.date_time}>
+                                            <TableCell component="th" scope="row">
+                                                {row.date_time}
+                                            </TableCell>
+                                            <TableCell>{row.mm}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </Paper>
+                    </Grid>
                                 )
                             }
 
