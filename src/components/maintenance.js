@@ -1,6 +1,8 @@
 import React, { useState, Fragment } from 'react';
 import { Container, Grid, Fab } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
+import MaintenanceLogs from './maintenance_logs';
+import IncidentReports from './incident_reports';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -21,7 +23,7 @@ const useStyles = makeStyles(theme => ({
 
 function Maintenance() {
 
-    const [feature, setFeature] = useState([]);
+    const [feature, setFeature] = useState([<MaintenanceLogs />]);
     const [av, avActive] = useState("");
     const [lca, lcaActive] = useState("primary");
 
@@ -31,17 +33,17 @@ function Maintenance() {
             case "incident_reports":
                 lcaActive("")
                 avActive("primary");
-                return_feat = []
+                return_feat = [<IncidentReports />]
                 break;
             case "maintenance_logs":
                 lcaActive("primary")
                 avActive("");
-                return_feat = []
+                return_feat = [<MaintenanceLogs />]
                 break;
             default:
                 lcaActive("primary")
                 avActive("");
-                return_feat = []
+                return_feat = [<MaintenanceLogs />]
                 break;
         }
         setFeature(return_feat)
