@@ -5,6 +5,7 @@ import SensorData from './sensor_data';
 import Maintenance from './maintenance';
 import Events from './events';
 import Home from './home';
+import CRA from './community_risk_assessment';
 
 export {
     AlertGeneration,
@@ -13,5 +14,6 @@ export {
     SensorData,
     Maintenance,
     Events,
-    Home
+    Home,
+    CRA
 }

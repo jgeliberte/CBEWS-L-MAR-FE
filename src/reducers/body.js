@@ -6,12 +6,16 @@ import {
     GroundData,
     SensorData,
     Maintenance,
-    Home
+    Home,
+    CRA
 } from '../components/menu'
 
 function handleContent(app_key) {
     let body_content = []
     switch (app_key) {
+        case "cra":
+            body_content = [<CRA />]
+            break;
         case "alertGen":
             body_content = [<AlertGeneration />]
             break;

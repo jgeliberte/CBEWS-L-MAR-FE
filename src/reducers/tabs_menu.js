@@ -24,6 +24,7 @@ export default function TabsMenu() {
             centered
           >
             <Tab value={"home"} label="Home" />
+            <Tab value={"cra"} label="Community Risk Assessment" />
             <Tab value={"alertGen"} label="Alert Generation" />
             <Tab value={"dataAnalysis"} label="Data Analysis" />
             <Tab value={"sensorData"} label="Sensor Data" />
