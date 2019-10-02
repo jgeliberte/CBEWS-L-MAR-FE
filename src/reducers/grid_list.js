@@ -11,6 +11,13 @@ const customGridStyle = makeStyles(theme => ({
     },
     title: {
         color: "#17526d"
+    },
+    button_fluid: {
+        width: '90%',
+        padding: 10
+    },
+    bottom_padding: {
+        padding: 10
     }
 }));
 
@@ -35,10 +42,34 @@ function CustomGridList(props) {
                         </Typography>
                     </Grid>
                     <Grid item xs={12}>
+                        <Typography variant="subtitle2">
+                            {item.sub_title}
+                        </Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <Grid container>
+                            <Grid item xs={4} />
+                            <Grid item xs={2}>
+                                <Fab variant="extended"
+                                    color="primary"
+                                    aria-label="add" className={classes.button_fluid}
+                                    onClick={() => {}}>
+                                    Download
+                                </Fab>
+                            </Grid>
+                            <Grid item xs={2}>
+                                <Fab variant="extended"
+                                    color="primary"
+                                    aria-label="add" className={classes.button_fluid}
+                                    onClick={() => {}}>
+                                    DELETE
+                                </Fab>
+                            </Grid>
+                            <Grid item xs={4} />
+                        </Grid>
+                    </Grid>
+                    <Grid item xs={12} className={classes.bottom_padding}>
                         <Box borderBottom={2} borderRadius="10%" borderColor="#17526d">
-                            <Typography variant="subtitle2">
-                                {item.sub_title}
-                            </Typography>
                         </Box>
                     </Grid>
                 </Grid>
