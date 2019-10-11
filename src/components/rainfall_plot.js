@@ -283,7 +283,7 @@ function RainfallPlot(props) {
     function renderGraph() {
         const temp = [];
         processed_data.forEach(data => {
-            if (feature === "data_analysis") {
+            if (feature === "data_analysis" || feature === "alert_validation") {
                 const cumulative = prepareCumulativeRainfallChartOption(data, input);
                 temp.push({ cumulative });
             } else {
@@ -424,7 +424,7 @@ function RainfallPlot(props) {
                             let opt;
                             let grid_size;
                             let instantaneous_table = []
-                            if (feature === "data_analysis") {
+                            if (feature === "data_analysis" || feature === "alert_validation") {
                                 opt = option.cumulative;
                                 grid_size = 12
                             } else {

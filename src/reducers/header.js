@@ -2,7 +2,7 @@ import React from 'react';
 import { LogoAppBar } from '../reducers/index'
 import { AppBar, Toolbar, IconButton, 
     Drawer, List, Divider, 
-    ListItem, ListItemIcon, ListItemText, makeStyles } from '@material-ui/core';
+    ListItem, ListItemText, makeStyles } from '@material-ui/core';
 import MenuIcon from '@material-ui/icons/Menu';
 
 const useStyles = makeStyles({

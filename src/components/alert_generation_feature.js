@@ -6,8 +6,8 @@ import {
     Table, TableBody, TableCell, TableHead,
     TableRow, Paper
 } from '@material-ui/core';
-import Highcharts from 'highcharts'
-import HighchartsReact from 'highcharts-react-official'
+
+import RainfallPlot from './rainfall_plot';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -61,16 +61,6 @@ function AlertValidation() {
         createData('2019-10-06 04:00:00', 'MoMs', 'Crack C', 'New crack near Crack C'),
     ];
 
-    const options = {
-        title: {
-            text: 'My chart'
-        },
-        series: [{
-            data: [1, 2, 3]
-        }]
-    }
-
-
     const dt_classes = tableStyle();
     const classes = useStyles();
 
@@ -105,10 +95,7 @@ function AlertValidation() {
                         </Paper>
                     </Grid>
                     <Grid item xs={12}>
-                        <HighchartsReact
-                            highcharts={Highcharts}
-                            options={options}
-                        />
+                        <RainfallPlot feature={"alert_validation"}/>
                     </Grid>
                     <Grid item xs={12}>
                         <Typography variant="h2" className={[classes.label_paddings, classes.alert_level]}>

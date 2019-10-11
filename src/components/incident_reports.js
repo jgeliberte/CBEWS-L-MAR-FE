@@ -7,8 +7,6 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import '../../node_modules/@fullcalendar/core/main.css';
 import '../../node_modules/@fullcalendar/daygrid/main.css';
 
-import moment from 'moment'
-
 const imageStyle = makeStyles(theme => ({
     img_size: {
         height: '100%',
