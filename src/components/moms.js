@@ -3,7 +3,8 @@ import {
     Grid, Paper, Container,
     Fab, makeStyles, Table,
     TableBody, TableCell, TableHead,
-    TableRow
+    TableRow, Dialog, DialogActions, DialogContent,
+    DialogContentText, DialogTitle, Button, Box
 } from "@material-ui/core";
 
 
@@ -44,11 +45,43 @@ function MoMs() {
     const dt_classes = tableStyle();
     const classes = useStyles();
 
+    const [open, setOpen] = React.useState(false);
+
+    const handleClickOpen = () => {
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+    };
 
     return (
         <Fragment>
+
+        <Dialog
+            open={open}
+            onClose={handleClose}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+        >
+            <DialogTitle id="alert-dialog-title">{"Raise Manifestation of movement?"}</DialogTitle>
+            <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+                Are you sure you want to raise this alert?
+            </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+            <Button onClick={handleClose} color="primary">
+                Cancel
+            </Button>
+            <Button onClick={handleClose} color="primary" autoFocus>
+                Confirm
+            </Button>
+            </DialogActions>
+        </Dialog>
+
         <Container fixed>
-            <Grid container align="center" spacing={10}>
+            <Grid container align="center" spacing={2}>
                 <Grid item xs={12}>
                     <Paper className={dt_classes.root}>
                         <Table className={dt_classes.table}>
@@ -62,7 +95,7 @@ function MoMs() {
                             </TableHead>
                             <TableBody>
                                 {rows.map(row => (
-                                    <TableRow key={row.date_time}>
+                                    <TableRow key={row.date_time} onClick={handleClickOpen}>
                                         <TableCell component="th" scope="row">
                                             {row.date_time}
                                         </TableCell>
@@ -75,7 +108,13 @@ function MoMs() {
                         </Table>
                     </Paper>
                 </Grid>
+                <Grid item xs={12}>
+                    <Box>
+                        * click row to raise moms.
+                    </Box>
+                </Grid>
                 <Grid container align="center" style={{ paddingTop: 20 }}>
+
                     <Grid item xs={3} />
                     <Grid item xs={2}>
                         <Fab variant="extended"

@@ -36,26 +36,21 @@ function CommunityRiskAssessment() {
         title: '<FILE_REPORT #2>',
         value: '../../path/file_name.txt',
         sub_title: 'Txt File'
-    },
-    {
-        title: '<FILE_REPORT #1>',
-        value: '../../path/file_name.ppt',
-        sub_title: 'PPTX File'
-    },
-    {
-        title: '<FILE_REPORT #2>',
-        value: '../../path/file_name.docx',
-        sub_title: 'DOCX File'
-    },
-    {
-        title: '<FILE_REPORT #2>',
-        value: '../../path/file_name.txt',
-        sub_title: 'Txt File'
     }]
     return (
         <Fragment>
             <Container align="center">
                 <CustomGridList data={cra_data} />
+                <Grid container>
+                    <Grid item xs={12}>
+                        <Fab variant="extended"
+                            color={"primary"}
+                            aria-label="add"
+                            onClick={()=>{}}>
+                            Upload CRA
+                        </Fab>
+                    </Grid>
+                </Grid>
             </Container>
         </Fragment>
     )

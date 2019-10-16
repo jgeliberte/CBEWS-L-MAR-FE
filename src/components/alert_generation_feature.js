@@ -4,7 +4,7 @@ import TransitionalModal from '../reducers/loading';
 import {
     Container, Grid, Fab, Typography,
     Table, TableBody, TableCell, TableHead,
-    TableRow, Paper
+    TableRow, Paper, Box
 } from '@material-ui/core';
 
 import RainfallPlot from './rainfall_plot';
@@ -69,6 +69,48 @@ function AlertValidation() {
             <Container fixed>
                 <Grid container align="center" spacing={10}>
                     <Grid item xs={12}>
+                        <Typography variant="h2" className={[classes.label_paddings, classes.alert_level]}>
+                            Alert 2
+                        </Typography>
+                        <Typography variant="h5">
+                            As of October 6, 2019 04:00 AM
+                        </Typography>
+                        <Typography variant="h5" className={classes.label_paddings}>
+                            Rainfall Trigger: RAIN_MARG 1-day cumulative rainfall (100.00 mm) exceeded threshold (56.55mm)
+                        </Typography>
+                        <Typography variant="h5" className={classes.label_paddings}>
+                            Manifestation of Movements Trigger: New Crack near Crack C
+                        </Typography>
+                        <Typography variant="h5" className={classes.label_paddings}>
+                            Event Start: October 5, 2019 12:00 PM
+                        </Typography>
+                        <Typography variant="h5" className={classes.label_paddings}>
+                            Validity: October 7, 2019 12:00 PM
+                        </Typography>
+                        <Typography variant="h5" className={classes.label_paddings}>
+                            Recommended Response: Prepare for evacuation
+                        </Typography>
+                    </Grid>
+                    <Grid item xs={3} />
+
+                    <Grid item xs={3}>
+                        <Fab variant="extended"
+                            color="primary"
+                            aria-label="add" className={classes.button_fluid}
+                            onClick={() => { validateAlert(true) }}>
+                            Valid
+                        </Fab>
+                    </Grid>
+                    <Grid item xs={3}>
+                        <Fab variant="extended"
+                            color="primary"
+                            aria-label="add" className={classes.button_fluid}
+                            onClick={() => { validateAlert(false) }}>
+                            Invalid
+                        </Fab>
+                    </Grid>
+                    <Grid item xs={3} />
+                    <Grid item xs={12}>
                         <Paper className={dt_classes.root}>
                             <Table className={dt_classes.table}>
                                 <TableHead>
@@ -95,50 +137,8 @@ function AlertValidation() {
                         </Paper>
                     </Grid>
                     <Grid item xs={12}>
-                        <RainfallPlot feature={"alert_validation"}/>
+                        <RainfallPlot feature={"alert_validation"} />
                     </Grid>
-                    <Grid item xs={12}>
-                        <Typography variant="h2" className={[classes.label_paddings, classes.alert_level]}>
-                            Alert 2
-                        </Typography>
-                        <Typography variant="h5">
-                            As of October 6, 2019 04:00 AM
-                        </Typography>
-                        <Typography variant="h5" className={classes.label_paddings}>
-                            Rainfall Trigger: RAIN_MARG 1-day cumulative rainfall (100.00 mm) exceeded threshold (56.55mm)
-                        </Typography>
-                        <Typography variant="h5" className={classes.label_paddings}>
-                            Manifestation of Movements Trigger: New Crack near Crack C
-                        </Typography>
-                        <Typography variant="h5" className={classes.label_paddings}>
-                            Event Start: October 5, 2019 12:00 PM
-                        </Typography>
-                        <Typography variant="h5" className={classes.label_paddings}>
-                            Validity: October 7, 2019 12:00 PM
-                        </Typography>
-                        <Typography variant="h5" className={classes.label_paddings}>
-                            Recommended Response: Prepare for evacuation
-                        </Typography>
-                    </Grid>
-                    <Grid item xs={3}/>
-                    
-                    <Grid item xs={3}>
-                        <Fab variant="extended"
-                            color="primary"
-                            aria-label="add" className={classes.button_fluid}
-                            onClick={()=> {validateAlert(true)}}>
-                            Valid
-                        </Fab>
-                    </Grid>
-                    <Grid item xs={3}>
-                        <Fab variant="extended"
-                            color="primary"
-                            aria-label="add" className={classes.button_fluid}
-                            onClick={()=> {validateAlert(false)}}>
-                            Invalid
-                        </Fab>
-                    </Grid>
-                    <Grid item xs={3}/>
                 </Grid>
             </Container>
         </Fragment>
@@ -176,7 +176,7 @@ function LatestCurrentAlert() {
     return (
         <Fragment>
             <Container fixed>
-                <Grid container>
+                <Grid container spacing={2}>
                     <Grid item xs={6} align="center">
                         <Typography variant="h2" className={[classes.label_paddings, classes.alert_level]}>
                             Alert 2
@@ -207,6 +207,11 @@ function LatestCurrentAlert() {
                         <Typography variant="h5" className={classes.label_paddings}>
                             Manifestation of Movements Trigger: New Crack near Crack C
                         </Typography>
+                    </Grid>
+                    <Grid item xs={12} align="right">
+                        <Box style={{paddingTop: 100}}>
+                            Prepared by: Carlo bontia, Tine Dumagan
+                        </Box>
                     </Grid>
                 </Grid>
                 <Grid container justify="center" className={classes.menu_functions}>

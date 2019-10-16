@@ -52,16 +52,6 @@ function Home() {
                     <Grid item xs={6} align="center">
                         <Box className={classes.info_padding}>
                             <Typography variant="h5" >
-                                Latest Subsurface Data
-                        </Typography>
-                            <Typography variant="h6">
-                                Nodes: 1, 2, 3, 4 shows noticeable movements downslope and across slope.
-                        </Typography>
-                        </Box>
-                    </Grid>
-                    <Grid item xs={6} align="center">
-                        <Box className={classes.info_padding}>
-                            <Typography variant="h5" >
                                 Latest Ground Measurement Data
                             </Typography>
                             <Typography variant="h6">

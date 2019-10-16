@@ -26,17 +26,17 @@ const useStyles = makeStyles(theme => ({
 }));
 
 function CapacityAndVulerability() {
-    function createData(resource, quantity, status_description, owner, in_charge, updater) {
-        return { resource, quantity, status_description, owner, in_charge, updater };
+    function createData(date_time, resource, quantity, status_description, owner, in_charge, updater) {
+        return { date_time, resource, quantity, status_description, owner, in_charge, updater };
     }
 
     const rows = [
-        createData('Megaphone', '6', 'working', 'Carlo Bontia','John Geliberte','Tine Dumagan'),
-        createData('Two-way radio', '2', 'working', 'Carlo Bontia','John Geliberte','Tine Dumagan'),
-        createData('Batingting', '1', 'broken', 'Carlo Bontia','John Geliberte','Tine Dumagan'),
-        createData('Sirena', '5', 'working', 'Carlo Bontia','John Geliberte','Tine Dumagan'),
-        createData('Cellphone', '10', 'broken', 'Carlo Bontia','John Geliberte','Tine Dumagan'),
-        createData('Landline', '2', 'working', 'Carlo Bontia','John Geliberte','Tine Dumagan'),
+        createData('2019-10-22 04:00:00','Megaphone', '6', 'working', 'Carlo Bontia','John Geliberte','Tine Dumagan'),
+        createData('2019-10-22 04:00:00','Two-way radio', '2', 'working', 'Carlo Bontia','John Geliberte','Tine Dumagan'),
+        createData('2019-10-22 04:00:00','Batingting', '1', 'broken', 'Carlo Bontia','John Geliberte','Tine Dumagan'),
+        createData('2019-10-22 04:00:00','Sirena', '5', 'working', 'Carlo Bontia','John Geliberte','Tine Dumagan'),
+        createData('2019-10-22 04:00:00','Cellphone', '10', 'broken', 'Carlo Bontia','John Geliberte','Tine Dumagan'),
+        createData('2019-10-22 04:00:00','Landline', '2', 'working', 'Carlo Bontia','John Geliberte','Tine Dumagan'),
     ];
     const dt_classes = tableStyle();
     const classes = useStyles();
@@ -51,6 +51,7 @@ function CapacityAndVulerability() {
                         <Table className={dt_classes.table}>
                             <TableHead>
                                 <TableRow>
+                                    <TableCell>Date time</TableCell>
                                     <TableCell>Resource</TableCell>
                                     <TableCell>Quantity</TableCell>
                                     <TableCell>Status/Description</TableCell>
@@ -61,10 +62,11 @@ function CapacityAndVulerability() {
                             </TableHead>
                             <TableBody>
                                 {rows.map(row => (
-                                    <TableRow key={row.resource}>
+                                    <TableRow key={row.date_time}>
                                         <TableCell component="th" scope="row">
-                                            {row.resource}
+                                            {row.date_time}
                                         </TableCell>
+                                        <TableCell>{row.resource}</TableCell>
                                         <TableCell>{row.quantity}</TableCell>
                                         <TableCell>{row.status_description}</TableCell>
                                         <TableCell>{row.owner}</TableCell>
