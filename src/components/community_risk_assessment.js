@@ -1,9 +1,10 @@
 import React, { useState, Fragment } from 'react';
-import { Container, Grid, Fab } from '@material-ui/core';
+import { Container, Grid, Fab, TextField, Button } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import HazardMapping from './hazard_mapping';
 import CommunityRiskAssessment from './cra';
 import CapacityAndVulnerability from './cav';
+
 
 
 const useStyles = makeStyles(theme => ({
@@ -61,6 +62,7 @@ function CRA() {
         setFeature(return_feat)
     }
 
+
     return (
         <Fragment>
             <Container maxWidth="xl" className={classes.root} spacing={24}>
@@ -73,7 +75,7 @@ function CRA() {
                                     color={hm}
                                     aria-label="add"
                                     className={classes.menu}
-                                    onClick={()=>{handleFeatureNav("hazard_map")}}>
+                                    onClick={() => { handleFeatureNav("hazard_map") }}>
                                     Hazard Mapping
                                 </Fab>
                             </Grid>
@@ -82,7 +84,7 @@ function CRA() {
                                     color={cav}
                                     aria-label="add"
                                     className={classes.menu}
-                                    onClick={()=>{handleFeatureNav("c_a_v")}}>
+                                    onClick={() => { handleFeatureNav("c_a_v") }}>
                                     Capacity and Vulnerability
                                 </Fab>
                             </Grid>
@@ -91,20 +93,21 @@ function CRA() {
                                     color={cra}
                                     aria-label="add"
                                     className={classes.menu}
-                                    onClick={()=>{handleFeatureNav("c_r_a")}}>
+                                    onClick={() => { handleFeatureNav("c_r_a") }}>
                                     Community risk assessment
                                 </Fab>
                             </Grid>
                             <Grid item={true} xs={3} style={{ marginTop: '15%' }} />
-                        </Grid> 
+                        </Grid>
                     </Grid>
                     <Grid item xs={9} >
-                        <div style={{overflow: 'auto', height: 650}}>
+                        <div style={{ overflow: 'auto', height: 650 }}>
                             {feature}
                         </div>
                     </Grid>
                 </Grid>
             </Container>
+
         </Fragment>
     )
 }

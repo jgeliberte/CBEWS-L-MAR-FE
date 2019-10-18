@@ -3,8 +3,14 @@ import CustomGridList from '../reducers/grid_list'
 
 import {
     Grid, Paper, Container,
-    Fab, makeStyles
+    Fab, makeStyles, TextField, Button
 } from "@material-ui/core";
+
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
 
 function CommunityRiskAssessment() {
     const cra_data = [{
@@ -37,6 +43,18 @@ function CommunityRiskAssessment() {
         value: '../../path/file_name.txt',
         sub_title: 'Txt File'
     }]
+
+
+    const [open, setOpen] = React.useState(false);
+
+    const handleClickOpen = () => {
+      setOpen(true);
+    };
+  
+    const handleClose = () => {
+      setOpen(false);
+    };
+
     return (
         <Fragment>
             <Container align="center">
@@ -46,12 +64,45 @@ function CommunityRiskAssessment() {
                         <Fab variant="extended"
                             color={"primary"}
                             aria-label="add"
-                            onClick={()=>{}}>
+                            onClick={handleClickOpen}>
                             Upload CRA
                         </Fab>
                     </Grid>
                 </Grid>
             </Container>
+            <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+            <DialogTitle id="form-dialog-title">File upload</DialogTitle>
+            <DialogContent>
+             <Grid container>
+                 <Grid item xs={8}>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        id="name"
+                        label="File path"
+                        type="email"
+                        fullWidth
+                    />
+                 </Grid>
+                 <Grid item xs={2}>
+                    <Fab variant="extended"
+                        color={"primary"}
+                        aria-label="add"
+                        onClick={handleClickOpen}>
+                        Browse
+                    </Fab>
+                 </Grid>
+             </Grid>
+            </DialogContent>
+            <DialogActions>
+            <Button onClick={handleClose} color="primary">
+                Cancel
+            </Button>
+            <Button onClick={handleClose} color="primary">
+                Confirm
+            </Button>
+            </DialogActions>
+        </Dialog>
         </Fragment>
     )
 }

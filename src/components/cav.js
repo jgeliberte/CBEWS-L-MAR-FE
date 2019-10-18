@@ -3,8 +3,22 @@ import {
     Grid, Paper, Container,
     Fab, makeStyles, Table,
     TableBody, TableCell, TableHead,
-    TableRow
+    TableRow, TextField, Button
 } from "@material-ui/core";
+
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+
+import {
+    MuiPickersUtilsProvider,
+    KeyboardTimePicker,
+    KeyboardDatePicker,
+} from '@material-ui/pickers';
+import MomentUtils from '@date-io/moment';
+
 
 
 const tableStyle = makeStyles(theme => ({
@@ -41,6 +55,15 @@ function CapacityAndVulerability() {
     const dt_classes = tableStyle();
     const classes = useStyles();
 
+    const [open, setOpen] = React.useState(false);
+
+    const handleClickOpen = () => {
+      setOpen(true);
+    };
+  
+    const handleClose = () => {
+      setOpen(false);
+    };
 
     return (
         <Fragment>
@@ -84,7 +107,7 @@ function CapacityAndVulerability() {
                         <Fab variant="extended"
                             color="primary"
                             aria-label="add" className={classes.button_fluid}
-                            onClick={() => {}}>
+                            onClick={handleClickOpen}>
                             Add Entry
                         </Fab>
                     </Grid>
@@ -92,6 +115,83 @@ function CapacityAndVulerability() {
                 </Grid>
             </Grid>
         </Container>
+
+        <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+            <DialogTitle id="form-dialog-title">Capacity and Vulnerability</DialogTitle>
+            <DialogContent>
+            <MuiPickersUtilsProvider utils={MomentUtils}>
+                <KeyboardDatePicker
+                    disableToolbar
+                    variant="inline"
+                    format="MM-DD-YYYY HH:mm:ss"
+                    margin="normal"
+                    id="date-picker-start"
+                    label="Date time"
+                    KeyboardButtonProps={{
+                        'aria-label': 'change date',
+                    }}
+                    fullWidth
+                />
+            </MuiPickersUtilsProvider>
+             <TextField
+                autoFocus
+                margin="dense"
+                id="name"
+                label="Resource"
+                type="email"
+                fullWidth
+            />
+             <TextField
+                autoFocus
+                margin="dense"
+                id="name"
+                label="Quantity"
+                type="email"
+                fullWidth
+            />
+             <TextField
+                autoFocus
+                margin="dense"
+                id="name"
+                label="Status / Description"
+                type="email"
+                fullWidth
+            />
+             <TextField
+                autoFocus
+                margin="dense"
+                id="name"
+                label="Owner"
+                type="email"
+                fullWidth
+            />
+             <TextField
+                autoFocus
+                margin="dense"
+                id="name"
+                label="In-charge"
+                type="email"
+                fullWidth
+            />
+             <TextField
+                autoFocus
+                margin="dense"
+                id="name"
+                label="Updater"
+                type="email"
+                fullWidth
+            />
+            </DialogContent>
+            <DialogActions>
+            <Button onClick={handleClose} color="primary">
+                Cancel
+            </Button>
+            <Button onClick={handleClose} color="primary">
+                Confirm
+            </Button>
+            </DialogActions>
+        </Dialog>
+
     </Fragment>
     )
 }

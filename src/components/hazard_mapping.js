@@ -1,10 +1,18 @@
 import React, { Fragment } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
-import {Grid, Fab} from '@material-ui/core/';
+import {Grid, Fab, TextField, 
+    Button} from '@material-ui/core/';
 import IconButton from '@material-ui/core/IconButton';
 import StarBorderIcon from '@material-ui/icons/StarBorder';
 import ImageZoom from 'react-medium-image-zoom'
+
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+
 
 const useStyles = makeStyles(theme => ({
     img_container: {
@@ -25,7 +33,15 @@ const tileData = [
 
 function HazardMapping() {
     const classes = useStyles();
+    const [open, setOpen] = React.useState(false);
 
+    const handleClickOpen = () => {
+      setOpen(true);
+    };
+  
+    const handleClose = () => {
+      setOpen(false);
+    };
     return (
         <Fragment>
             <Container className={classes.img_container}>
@@ -51,12 +67,45 @@ function HazardMapping() {
                         <Fab variant="extended"
                             color={"primary"}
                             aria-label="add"
-                            onClick={()=>{}}>
+                            onClick={handleClickOpen}>
                             Upload map
                         </Fab>
                     </Grid>
                 </Grid>
             </Container>
+            <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+            <DialogTitle id="form-dialog-title">File upload</DialogTitle>
+            <DialogContent>
+             <Grid container>
+                 <Grid item xs={8}>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        id="name"
+                        label="File path"
+                        type="email"
+                        fullWidth
+                    />
+                 </Grid>
+                 <Grid item xs={2}>
+                    <Fab variant="extended"
+                        color={"primary"}
+                        aria-label="add"
+                        onClick={handleClickOpen}>
+                        Browse
+                    </Fab>
+                 </Grid>
+             </Grid>
+            </DialogContent>
+            <DialogActions>
+            <Button onClick={handleClose} color="primary">
+                Cancel
+            </Button>
+            <Button onClick={handleClose} color="primary">
+                Confirm
+            </Button>
+            </DialogActions>
+        </Dialog>
         </Fragment>
 
     )
