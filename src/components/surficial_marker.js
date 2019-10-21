@@ -3,9 +3,21 @@ import {
     Grid, Paper, Container,
     Fab, makeStyles, Table,
     TableBody, TableCell, TableHead,
-    TableRow
+    TableRow, TextField, Button
 } from "@material-ui/core";
 
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+
+import {
+    MuiPickersUtilsProvider,
+    KeyboardTimePicker,
+    KeyboardDatePicker,
+} from '@material-ui/pickers';
+import MomentUtils from '@date-io/moment';
 
 const tableStyle = makeStyles(theme => ({
     root: {
@@ -41,9 +53,19 @@ function SurficialMarker() {
         createData('2019-08-01 07:30:00', '59cm', '53cm', '20cm','MAULAN','Juan Dela Cruz', 'John Geliberte'),
         createData('2019-07-30 07:30:00', '58cm', '53cm', '20cm','MAULAN','Juan Dela Cruz', 'John Geliberte')
     ];
+
     const dt_classes = tableStyle();
     const classes = useStyles();
 
+    const [open, setOpen] = React.useState(false);
+
+    const handleClickOpen = () => {
+      setOpen(true);
+    };
+  
+    const handleClose = () => {
+      setOpen(false);
+    };
 
     return (
         <Fragment>
@@ -87,7 +109,7 @@ function SurficialMarker() {
                         <Fab variant="extended"
                             color="primary"
                             aria-label="add" className={classes.button_fluid}
-                            onClick={() => {}}>
+                            onClick={handleClickOpen}>
                             Add Ground Measurement
                         </Fab>
                     </Grid>
@@ -111,6 +133,97 @@ function SurficialMarker() {
                 </Grid>
             </Grid>
         </Container>
+        <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+            <DialogTitle id="form-dialog-title">Ground measurement</DialogTitle>
+            <DialogContent>
+                <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                        <MuiPickersUtilsProvider utils={MomentUtils}>
+                            <KeyboardDatePicker
+                                disableToolbar
+                                variant="inline"
+                                format="MM-DD-YYYY HH:mm:ss"
+                                margin="normal"
+                                id="date-picker-start"
+                                label="Date time"
+                                KeyboardButtonProps={{
+                                    'aria-label': 'change date',
+                                }}
+                                fullWidth
+                            />
+                        </MuiPickersUtilsProvider>
+                    </Grid>
+                    <Grid item xs={4}>
+                        <TextField
+                            autoFocus
+                            margin="dense"
+                            id="name"
+                            label="Marker A"
+                            type="email"
+                            fullWidth
+                        />
+                    </Grid>
+                    <Grid item xs={4}>
+                        <TextField
+                            autoFocus
+                            margin="dense"
+                            id="name"
+                            label="Marker B"
+                            type="email"
+                            fullWidth
+                        />
+                    </Grid>
+                    <Grid item xs={4}>
+                        <TextField
+                            autoFocus
+                            margin="dense"
+                            id="name"
+                            label="Marker C"
+                            type="email"
+                            fullWidth
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <TextField
+                            autoFocus
+                            margin="dense"
+                            id="name"
+                            label="Weather"
+                            type="email"
+                            fullWidth
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <TextField
+                            autoFocus
+                            margin="dense"
+                            id="name"
+                            label="Nag sukat"
+                            type="email"
+                            fullWidth
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <TextField
+                            autoFocus
+                            margin="dense"
+                            id="name"
+                            label="Nag encode"
+                            type="email"
+                            fullWidth
+                        />
+                    </Grid>
+                </Grid>
+            </DialogContent>
+            <DialogActions>
+            <Button onClick={handleClose} color="primary">
+                Cancel
+            </Button>
+            <Button onClick={handleClose} color="primary">
+                Confirm
+            </Button>
+            </DialogActions>
+        </Dialog>
     </Fragment>
     )
 }

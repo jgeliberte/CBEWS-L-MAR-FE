@@ -3,9 +3,21 @@ import {
     Grid, Paper, Container,
     Fab, makeStyles, Table,
     TableBody, TableCell, TableHead,
-    TableRow
+    TableRow, Box, TextField, Button
 } from "@material-ui/core";
 
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+
+import {
+    MuiPickersUtilsProvider,
+    KeyboardTimePicker,
+    KeyboardDatePicker,
+} from '@material-ui/pickers';
+import MomentUtils from '@date-io/moment';
 
 const tableStyle = makeStyles(theme => ({
     root: {
@@ -44,11 +56,31 @@ function ODMonitoring() {
     const dt_classes = tableStyle();
     const classes = useStyles();
 
+    const [open, setOpen] = React.useState(false);
+
+    const handleClickOpen = () => {
+      setOpen(true);
+    };
+  
+    const handleClose = () => {
+      setOpen(false);
+    };
+
+    const [openRaise, setOpenRaise] = React.useState(false);
+
+    const handleClickOpenRaise = () => {
+      setOpenRaise(true);
+    };
+  
+    const handleCloseRaise = () => {
+      setOpenRaise(false);
+    };
+
 
     return (
         <Fragment>
         <Container fixed>
-            <Grid container align="center" spacing={10}>
+            <Grid container align="center" spacing={2}>
                 <Grid item xs={12}>
                     <Paper className={dt_classes.root}>
                         <Table className={dt_classes.table}>
@@ -62,7 +94,7 @@ function ODMonitoring() {
                             </TableHead>
                             <TableBody>
                                 {rows.map(row => (
-                                    <TableRow key={row.date_time}>
+                                    <TableRow key={row.date_time} onClick={handleClickOpenRaise}>
                                         <TableCell component="th" scope="row">
                                             {row.date_time}
                                         </TableCell>
@@ -75,14 +107,19 @@ function ODMonitoring() {
                         </Table>
                     </Paper>
                 </Grid>
+                <Grid item xs={12}>
+                    <Box>
+                        * click row to raise moms.
+                    </Box>
+                </Grid>
                 <Grid container align="center" style={{ paddingTop: 20 }}>
                     <Grid item xs={2} />
                     <Grid item xs={3}>
                         <Fab variant="extended"
                             color="primary"
                             aria-label="add" className={classes.button_fluid}
-                            onClick={() => {}}>
-                            Request on-demand monitoring
+                            onClick={handleClickOpen}>
+                            Add on-demand monitoring
                         </Fab>
                     </Grid>
                     <Grid item xs={3}>
@@ -105,6 +142,84 @@ function ODMonitoring() {
                 </Grid>
             </Grid>
         </Container>
+
+        <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+            <DialogTitle id="form-dialog-title">Capacity and Vulnerability</DialogTitle>
+            <DialogContent>
+            <MuiPickersUtilsProvider utils={MomentUtils}>
+                <KeyboardDatePicker
+                    disableToolbar
+                    variant="inline"
+                    format="MM-DD-YYYY HH:mm:ss"
+                    margin="normal"
+                    id="date-picker-start"
+                    label="Date time"
+                    KeyboardButtonProps={{
+                        'aria-label': 'change date',
+                    }}
+                    fullWidth
+                />
+            </MuiPickersUtilsProvider>
+             <TextField
+                autoFocus
+                margin="dense"
+                id="name"
+                label="Reporter"
+                type="email"
+                fullWidth
+            />
+             <TextField
+                autoFocus
+                margin="dense"
+                id="name"
+                label="Reason for monitoring"
+                type="email"
+                fullWidth
+            />
+             <TextField
+                autoFocus
+                margin="dense"
+                id="name"
+                label="Attachment"
+                type="email"
+                fullWidth
+            />
+            </DialogContent>
+            <DialogActions>
+            <Button onClick={handleClose} color="primary">
+                Cancel
+            </Button>
+            <Button onClick={handleClose} color="primary">
+                Confirm
+            </Button>
+            </DialogActions>
+        </Dialog>
+
+
+
+        <Dialog
+                open={openRaise}
+                onClose={handleCloseRaise}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">{"Raise On-demand monitoring?"}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        Are you sure you want to raise this alert?
+            </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseRaise} color="primary">
+                        Cancel
+            </Button>
+                    <Button onClick={handleCloseRaise} color="primary" autoFocus>
+                        Confirm
+            </Button>
+                </DialogActions>
+            </Dialog>
+
+
     </Fragment>
     )
 }

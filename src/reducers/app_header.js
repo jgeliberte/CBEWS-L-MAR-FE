@@ -17,7 +17,7 @@ export default class AppTitle extends Component {
                 <Grid item>
                     <Paper style={{ textAlign: "center" }} elevation={0}>
                         <Typography variant="h5" component="h3">
-                            Municipality of Marirong, Barangay Leon.
+                            Municipality of Leon, Barangay Marirong.
                             </Typography>
                     </Paper>
                 </Grid>

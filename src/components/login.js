@@ -2,8 +2,10 @@ import React from 'react';
 import { LogoCenter, AppTitle } from '../reducers/index';
 import Container from '@material-ui/core/Container';
 import Grid from '@material-ui/core/Grid';
+import Box from '@material-ui/core/Box';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
+import {Link} from 'react-router-dom';
 import { withRouter } from 'react-router-dom'
 
 class Login extends React.Component {
@@ -61,6 +63,14 @@ class Login extends React.Component {
                             onClick={() => { this.validateCredentials() }}>
                             Login
                         </Button>
+                    </Grid>
+                </Grid>
+                <Grid container alignItems="center" justify="center" spacing={1}>
+                    <Grid item xs={12} align="center">
+                        <Link to="#">Registration</Link>
+                    </Grid>
+                    <Grid item xs={12} align="center">
+                        <Link to="#">Forgot password</Link>
                     </Grid>
                 </Grid>
             </Container>

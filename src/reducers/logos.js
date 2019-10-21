@@ -37,17 +37,18 @@ function LogoCenter() {
 
                 <Grid item xs={2}>
                     <CardMedia
+                        image={require('../assets/leon_seal.png')}
+                        style={login_styles.media}
+                    />
+                </Grid>
+                <Grid item xs={2}>
+                    <CardMedia
                         image={require('../assets/mar_seal.png')}
                         style={login_styles.media}
                     />
                 </Grid>
 
-                <Grid item xs={2}>
-                    <CardMedia
-                        image={require('../assets/leon_seal.png')}
-                        style={login_styles.media}
-                    />
-                </Grid>
+
             </Grid>
         </Container>
     );
@@ -72,17 +73,19 @@ function LogoAppBar() {
 
                 <Grid item xs={1}>
                     <CardMedia
-                        image={require('../assets/mar_seal.png')}
+                        image={require('../assets/leon_seal.png')}
                         style={img_styles.media}
                     />
                 </Grid>
 
                 <Grid item xs={1}>
                     <CardMedia
-                        image={require('../assets/leon_seal.png')}
+                        image={require('../assets/mar_seal.png')}
                         style={img_styles.media}
                     />
                 </Grid>
+
+
             </Grid>
         </Container>
     );

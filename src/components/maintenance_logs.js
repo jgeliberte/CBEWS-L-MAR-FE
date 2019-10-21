@@ -1,13 +1,25 @@
 import React, { Fragment } from 'react'
 import { Container, Grid, Fab, Paper, Table,
-    TableBody, TableCell, TableHead, TableRow } from '@material-ui/core';
+    TableBody, TableCell, TableHead, TableRow, TextField, 
+    Button } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import '../../node_modules/@fullcalendar/core/main.css';
 import '../../node_modules/@fullcalendar/daygrid/main.css';
 
-import moment from 'moment'
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+
+import {
+    MuiPickersUtilsProvider,
+    KeyboardTimePicker,
+    KeyboardDatePicker,
+} from '@material-ui/pickers';
+import MomentUtils from '@date-io/moment';
 
 const imageStyle = makeStyles(theme => ({
     img_size: {
@@ -71,6 +83,16 @@ function MaintenanceLogs() {
         createData('2019-10-06 03:30:00','Hardware', 'Pinalitan ang battery', 'Carlo Bontia', 'John Geliberte'),
         createData('2019-10-06 03:20:00','Hardware', 'Nilinis ang loob ng data logger', 'Carlo Bontia', 'John Geliberte'),
     ];
+
+    const [open, setOpen] = React.useState(false);
+
+    const handleClickOpen = () => {
+      setOpen(true);
+    };
+  
+    const handleClose = () => {
+      setOpen(false);
+    };
 
 
     return (
@@ -154,7 +176,7 @@ function MaintenanceLogs() {
                                 <Fab variant="extended"
                                     color="primary"
                                     aria-label="add" className={classes.button_fluid}
-                                    onClick={() => {}}>
+                                    onClick={handleClickOpen}>
                                     Add Maintenance Report
                                 </Fab>
                             </Grid>
@@ -163,6 +185,68 @@ function MaintenanceLogs() {
                     </Grid>
                 </Grid>
             </Container>
+
+            <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+            <DialogTitle id="form-dialog-title">Maintenance Log</DialogTitle>
+            <DialogContent>
+            <MuiPickersUtilsProvider utils={MomentUtils}>
+                <KeyboardDatePicker
+                    disableToolbar
+                    variant="inline"
+                    format="MM-DD-YYYY HH:mm:ss"
+                    margin="normal"
+                    id="date-picker-start"
+                    label="Date time"
+                    KeyboardButtonProps={{
+                        'aria-label': 'change date',
+                    }}
+                    fullWidth
+                />
+            </MuiPickersUtilsProvider>
+             <TextField
+                autoFocus
+                margin="dense"
+                id="name"
+                label="Type of maintenance"
+                type="email"
+                fullWidth
+            />
+             <TextField
+                autoFocus
+                margin="dense"
+                id="name"
+                label="Remarks"
+                type="email"
+                fullWidth
+            />
+             <TextField
+                autoFocus
+                margin="dense"
+                id="name"
+                label="In-charge"
+                type="email"
+                fullWidth
+            />
+             <TextField
+                autoFocus
+                margin="dense"
+                id="name"
+                label="Updater"
+                type="email"
+                fullWidth
+            />
+            </DialogContent>
+            <DialogActions>
+            <Button onClick={handleClose} color="primary">
+                Cancel
+            </Button>
+            <Button onClick={handleClose} color="primary">
+                Confirm
+            </Button>
+            </DialogActions>
+        </Dialog>
+
+
         </Fragment>
     )
 }
