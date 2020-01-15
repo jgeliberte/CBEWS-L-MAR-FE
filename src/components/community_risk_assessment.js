@@ -1,27 +1,9 @@
 import React, { useState, Fragment } from 'react';
 import { Container, Grid, Fab, TextField, Button } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
+import { useStyles } from '../styles/general_styles';
 import HazardMapping from './hazard_mapping';
 import CommunityRiskAssessment from './cra';
 import CapacityAndVulnerability from './cav';
-
-
-
-const useStyles = makeStyles(theme => ({
-    root: {
-        flexGrow: 1,
-    },
-    margin: {
-        margin: theme.spacing(1),
-    },
-    menuContainer: {
-        // marginTop: '40%'
-    },
-    menu: {
-        width: '100%',
-        marginRight: '5%'
-    }
-}));
 
 function CRA() {
     const classes = useStyles();

@@ -4,23 +4,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import RainfallPlot from './rainfall_plot';
 import SurficialPlot from './surficial_plot';
 import SubsurfacePlot from './subsurface_plot';
-
-
-const useStyles = makeStyles(theme => ({
-    root: {
-        flexGrow: 1,
-    },
-    margin: {
-        margin: theme.spacing(1),
-    },
-    menuContainer: {
-        // marginTop: '40%'
-    },
-    menu: {
-        width: '100%',
-        marginRight: '5%'
-    }
-}));
+import { useStyles } from '../styles/general_styles';
 
 function DataAnalysis() {
     const classes = useStyles();

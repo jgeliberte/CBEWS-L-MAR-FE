@@ -1,25 +1,9 @@
 import React, { useState, Fragment } from 'react';
 import { Container, Grid, Fab } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
 import SurficialMarker from './surficial_marker';
 import MoMs from './moms';
 import ODMonitoring from './surficial_od_monitoring';
-
-const useStyles = makeStyles(theme => ({
-    root: {
-        flexGrow: 1,
-    },
-    margin: {
-        margin: theme.spacing(1),
-    },
-    menuContainer: {
-        // marginTop: '40%'
-    },
-    menu: {
-        width: '100%',
-        marginRight: '5%'
-    }
-}));
+import { useStyles } from '../styles/general_styles';
 
 function GroundData() {
     const classes = useStyles();

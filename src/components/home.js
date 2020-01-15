@@ -1,28 +1,6 @@
 import React, { Fragment } from 'react';
-import { Container, Grid, Typography, makeStyles, Box } from '@material-ui/core'
-
-
-const useStyles = makeStyles(theme => ({
-    root: {
-        flexGrow: 1,
-    },
-    margin: {
-        margin: theme.spacing(1),
-    },
-    menu_functions: {
-        paddingTop: '10%'
-    },
-    button_fluid: {
-        width: '90%',
-        padding: 10
-    },
-    info_padding: {
-        padding: 20
-    },
-    alert_level: {
-        color: '#f09e01'
-    }
-}));
+import { Container, Grid, Typography, Box } from '@material-ui/core'
+import { useStyles } from '../styles/general_styles';
 
 function Home() {
     const classes = useStyles();

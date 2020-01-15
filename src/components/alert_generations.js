@@ -2,24 +2,7 @@ import React, { useState, Fragment } from 'react';
 import { Container, Grid, Fab } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { AlertValidation, LatestCurrentAlert } from './alert_generation_feature'
-
-
-const useStyles = makeStyles(theme => ({
-    root: {
-        flexGrow: 1,
-    },
-    margin: {
-        margin: theme.spacing(1),
-    },
-    menuContainer: {
-        // marginTop: '40%'
-    },
-    menu: {
-        width: '100%',
-        marginRight: '5%'
-    }
-}));
-
+import { useStyles } from '../styles/general_styles';
 
 function AlertGeneration() {
 

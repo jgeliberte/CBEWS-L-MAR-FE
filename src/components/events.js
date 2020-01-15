@@ -1,33 +1,11 @@
 import React, { Fragment, useState } from 'react';
 import {
-    Grid, Paper, Container,
-    Fab, makeStyles, Box, Typography, TextField, MenuItem
+    Grid, Container,
+    Fab, Typography, TextField, MenuItem
 } from "@material-ui/core";
+import { useStyles } from '../styles/general_styles';
 
-
-
-const useStyles = makeStyles(theme => ({
-    header: {
-        margin: 50
-    },
-    container: {
-        display: 'flex',
-        flexWrap: 'wrap',
-    },
-    textField: {
-        marginLeft: theme.spacing(1),
-        marginRight: theme.spacing(1),
-        width: '100%',
-    },
-    dense: {
-        marginTop: 19,
-    },
-    menu: {
-        width: '100%',
-    },
-}));
 export default function Events() {
-    const [template, setTemplate] = useState([]);
     const [template_key, setKey] = useState('gndmeas');
     const [textArea, setTextArea] = useState([]);
     const classes = useStyles();

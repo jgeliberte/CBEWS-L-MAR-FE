@@ -1,7 +1,7 @@
 import React, {Fragment} from 'react';
 import {
     Grid, Paper, Container,
-    Fab, makeStyles, Table,
+    Fab, Table,
     TableBody, TableCell, TableHead,
     TableRow, TextField, Button
 } from "@material-ui/core";
@@ -9,35 +9,14 @@ import {
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import { useStyles, tableStyle } from '../styles/general_styles';
 
 import {
     MuiPickersUtilsProvider,
-    KeyboardTimePicker,
     KeyboardDatePicker,
 } from '@material-ui/pickers';
 import MomentUtils from '@date-io/moment';
-
-
-
-const tableStyle = makeStyles(theme => ({
-    root: {
-        width: '100%',
-        marginTop: theme.spacing(3),
-        overflowX: 'auto',
-    },
-    table: {
-        minWidth: 650,
-    },
-}));
-
-const useStyles = makeStyles(theme => ({
-    button_fluid: {
-        width: '90%',
-        padding: 10
-    },
-}));
 
 function CapacityAndVulerability() {
     function createData(date_time, resource, quantity, status_description, owner, in_charge, updater) {

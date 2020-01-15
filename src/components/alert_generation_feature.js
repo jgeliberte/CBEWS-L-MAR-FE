@@ -6,41 +6,9 @@ import {
     Table, TableBody, TableCell, TableHead,
     TableRow, Paper, Box
 } from '@material-ui/core';
+import {useStyles , tableStyle} from '../styles/general_styles';
 
 import RainfallPlot from './rainfall_plot';
-
-const useStyles = makeStyles(theme => ({
-    root: {
-        flexGrow: 1,
-    },
-    margin: {
-        margin: theme.spacing(1),
-    },
-    menu_functions: {
-        paddingTop: '10%'
-    },
-    button_fluid: {
-        width: '90%',
-        padding: 10
-    },
-    label_paddings: {
-        padding: 10
-    },
-    alert_level: {
-        color: '#f09e01'
-    }
-}));
-
-const tableStyle = makeStyles(theme => ({
-    root: {
-        width: '100%',
-        marginTop: theme.spacing(3),
-        overflowX: 'auto',
-    },
-    table: {
-        minWidth: 650,
-    },
-}));
 
 function AlertValidation() {
 
@@ -147,6 +115,7 @@ function AlertValidation() {
 
 function LatestCurrentAlert() {
     const classes = useStyles();
+    const general_styles = useStyles();
     const [modal, setModal] = useState([<TransitionalModal status={false} />])
 
     function sendEmail() {

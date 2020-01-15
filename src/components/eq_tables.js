@@ -1,31 +1,11 @@
 import React, { Fragment } from 'react';
 import {
     Grid, Paper, Container,
-    Fab, makeStyles, Table,
+    Fab, Table,
     TableBody, TableCell, TableHead,
     TableRow
 } from "@material-ui/core";
-
-
-const tableStyle = makeStyles(theme => ({
-    root: {
-        width: '100%',
-        marginTop: theme.spacing(3),
-        overflowX: 'auto',
-    },
-    table: {
-        minWidth: 650,
-    },
-}));
-
-const useStyles = makeStyles(theme => ({
-
-    button_fluid: {
-        width: '90%',
-        padding: 10
-    },
-
-}));
+import { useStyles, tableStyle } from '../styles/general_styles';
 
 function EarthquakeTables() {
 
