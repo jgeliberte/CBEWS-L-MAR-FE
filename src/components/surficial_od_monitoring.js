@@ -14,7 +14,6 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 
 import {
     MuiPickersUtilsProvider,
-    KeyboardTimePicker,
     KeyboardDatePicker,
 } from '@material-ui/pickers';
 import MomentUtils from '@date-io/moment';

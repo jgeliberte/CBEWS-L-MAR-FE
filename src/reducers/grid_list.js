@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
     Grid, Paper, Container,
     Fab, makeStyles, Box, Typography
 } from "@material-ui/core";
 import { borderTop, borderBottom, borderColor, borderRadius } from '@material-ui/system';
+import AppConfig from "../reducers/AppConfig";
 
 const customGridStyle = makeStyles(theme => ({
     grid_container: {
@@ -22,10 +23,18 @@ const customGridStyle = makeStyles(theme => ({
 }));
 
 function CustomGridList(props) {
-    const { data } = props;
+    const { data, type, handleDownload, handleDelete } = props;
     const classes = customGridStyle();
     let ret_val = [];
+
+    const handleDownloadInt = (item) => () => {
+        window.open(`${AppConfig.HOST_DIR}CBEWSL/MARIRONG/DOCUMENTS/${item.title}`,'_blank');
+    };
+
     data.forEach((item)=> {
+        const handler_type = type === null || typeof type === "undefined" ? null : type;
+        const downloadClickHandler = handler_type === "cra_list" ? handleDownload() : () => console.log("clicked download");
+        
         ret_val.push(
             <Grid item xs={12}>
                 <Grid container className={classes.grid_container}>
@@ -53,7 +62,8 @@ function CustomGridList(props) {
                                 <Fab variant="extended"
                                     color="primary"
                                     aria-label="add" className={classes.button_fluid}
-                                    onClick={() => {}}>
+                                    onClick={handleDownloadInt(item)}
+                                >
                                     Download
                                 </Fab>
                             </Grid>
@@ -61,7 +71,9 @@ function CustomGridList(props) {
                                 <Fab variant="extended"
                                     color="primary"
                                     aria-label="add" className={classes.button_fluid}
-                                    onClick={() => {}}>
+                                    // onClick={() => {}}
+                                    onClick={() => handleDelete}
+                                >
                                     DELETE
                                 </Fab>
                             </Grid>

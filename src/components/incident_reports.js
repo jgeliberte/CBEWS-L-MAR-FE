@@ -70,7 +70,7 @@ function IncidentReports() {
     const dt_classes = tableStyle();
 
     function createData( date_time, incident_narrative, reporter, attachment ) {
-        return { date_time, incident_narrative, reporter, attachment, reporter, attachment };
+        return { date_time, incident_narrative, reporter, attachment };
     }
 
     const rows = [
