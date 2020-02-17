@@ -1,5 +1,5 @@
 import React, { useState, Fragment } from 'react';
-import { Container, Grid, Fab, TextField, Button } from '@material-ui/core';
+import { Container, Grid, Fab } from '@material-ui/core';
 import { useStyles } from '../styles/general_styles';
 import HazardMapping from './hazard_mapping';
 import CommunityRiskAssessment from './cra';

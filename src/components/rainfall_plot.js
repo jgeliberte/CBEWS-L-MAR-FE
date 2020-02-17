@@ -10,7 +10,6 @@ import { sample_rain_data } from "./sample_rain_data._not_final";
 import TransitionalModal from '../reducers/loading';
 import {
     MuiPickersUtilsProvider,
-    KeyboardTimePicker,
     KeyboardDatePicker,
 } from '@material-ui/pickers';
 import MomentUtils from '@date-io/moment';

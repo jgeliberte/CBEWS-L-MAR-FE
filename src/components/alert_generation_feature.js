@@ -1,5 +1,4 @@
 import React, { useState, Fragment } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
 import TransitionalModal from '../reducers/loading';
 import {
     Container, Grid, Fab, Typography,
@@ -115,7 +114,6 @@ function AlertValidation() {
 
 function LatestCurrentAlert() {
     const classes = useStyles();
-    const general_styles = useStyles();
     const [modal, setModal] = useState([<TransitionalModal status={false} />])
 
     function sendEmail() {

@@ -388,7 +388,6 @@ function SubsurfacePlot(props) {
     });
 
     let options = [];
-    const temp = [];
 
     processed_data.forEach(data => {
         data.forEach(inner => {
