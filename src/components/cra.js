@@ -25,39 +25,6 @@ function renameFileType(type) {
     return typeof return_type !== "undefined" ? return_type : "Unknown"
 }
 
-// function getBlob (test) {
-//     return Helpers.httpRequest(
-//         `${AppConfig.HOSTNAME}/api/cra/community_risk_assessment/download`,
-//         "POST",
-//         test,
-//     )
-//     .then(response => response.blob())
-//     .then(blob => {
-//         console.log("BLOB", blob)
-//         return Helpers.downloadBlob(blob);
-//     })
-//     .catch(error => console.error(error));
-// }
-
-// function addBlobs (cra_list) {
-//     return cra_list.map(cra => {
-//         const test = {
-//             file_path: cra.value,
-//             filename: cra.title
-//         };
-//         let temp = null;
-//         getBlob(test)
-//         .then(value => {
-//             console.log(value);
-//             temp = value;
-//         });
-//         return ({
-//             ...cra,
-//             blob: temp
-//         });
-//     });
-// }
-
 function formatCRAData (data) {
     return data.map(cra => ({
         title: cra.filename,
