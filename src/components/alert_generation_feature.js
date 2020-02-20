@@ -115,22 +115,28 @@ function AlertValidation() {
     );
 }
 
-// UTILs
-//
-//
 
 function CurrentAlertArea (props) {
     const { leo, classes } = props;
 
     const prepareTriggers = (triggers) => {
-        return triggers.map(trigger => {
-            const { trigger_type, timestamp, info, trigger_source } = trigger;
+        if (triggers.length > 0) {
+            return triggers.map(trigger => {
+                const { trigger_type, timestamp, info, trigger_source } = trigger;
+                return (
+                    <Typography variant="h5" className={classes.label_paddings}>
+                        {`${trigger_source.toUpperCase()} (${trigger_type}): ${info}`}
+                    </Typography>
+                );
+            });
+        } else {
             return (
                 <Typography variant="h5" className={classes.label_paddings}>
-                    {`${trigger_source.toUpperCase()} (${trigger_type}): ${info}`}
+                    No retriggers
                 </Typography>
-            );
-        });
+            )
+        }
+
     };
 
     if (leo !== "empty") {
@@ -142,27 +148,21 @@ function CurrentAlertArea (props) {
             <Fragment>
                 <Grid item xs={6} align="center">
                     <Typography variant="h2" className={[classes.label_paddings, classes.alert_level]}>
-                        {/* Alert 2 */}
                         {`Alert ${leo.public_alert_level}`}
                     </Typography>
                     <Typography variant="h5">
-                        {/* As of October 6, 2019 04:00 AM */}
                         {`As of ${as_of}`}
                     </Typography>
                     <Typography variant="h5">
-                        {/* No new retriggers */}
                         {prepareTriggers(leo.release_triggers)}
                     </Typography>
                     <Typography variant="h5" className={classes.label_paddings}>
-                        {/* Event Start: October 5, 2019 12:00 PM */}
                         {`Event Start: ${event_start}`}
                     </Typography>
                     <Typography variant="h5" className={classes.label_paddings}>
-                        {/* Validity: October 7, 2019 12:00 PM */}
                         {`Validity: ${validity}`}
                     </Typography>
                     <Typography variant="h5" className={classes.label_paddings}>
-                        {/* Recommended Response: Prepare for evacuation */}
                         {`Recommended Response: ${leo.recommended_response}`}
                     </Typography>
                 </Grid>
@@ -200,7 +200,6 @@ function LatestCurrentAlert() {
             "GET", [], null
         )
         .then(({data, status}) => {
-            console.log(data, status);
             let key = "";
             if (data.latest.length > 0) key = "latest";
             else if (data.overdue.length > 0) key = "overdue";
