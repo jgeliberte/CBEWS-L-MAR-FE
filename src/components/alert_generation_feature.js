@@ -1,4 +1,4 @@
-import React, { useState, Fragment } from 'react';
+import React, { useState, Fragment, useEffect } from 'react';
 import TransitionalModal from '../reducers/loading';
 import {
     Container, Grid, Fab, Typography,
@@ -6,6 +6,9 @@ import {
     TableRow, Paper, Box
 } from '@material-ui/core';
 import {useStyles , tableStyle} from '../styles/general_styles';
+import AppConfig from "../reducers/AppConfig";
+import Helper from "../Helpers";
+import moment from "moment";
 
 import RainfallPlot from './rainfall_plot';
 
@@ -112,9 +115,107 @@ function AlertValidation() {
     );
 }
 
+// UTILs
+//
+//
+
+function CurrentAlertArea (props) {
+    const { leo, classes } = props;
+
+    const prepareTriggers = (triggers) => {
+        return triggers.map(trigger => {
+            const { trigger_type, timestamp, info, trigger_source } = trigger;
+            return (
+                <Typography variant="h5" className={classes.label_paddings}>
+                    {`${trigger_source.toUpperCase()} (${trigger_type}): ${info}`}
+                </Typography>
+            );
+        });
+    };
+
+    if (leo !== "empty") {
+        console.log(leo);
+        const as_of = moment(leo.data_ts).add(30, "mins").format("dddd, MMMM Do YYYY, h:mm A");
+        const event_start = moment(leo.event_start).format("MMMM D, YYYY h:mm A");
+        const validity = moment(leo.validity).format("MMMM D, YYYY h:mm A");
+        return (
+            <Fragment>
+                <Grid item xs={6} align="center">
+                    <Typography variant="h2" className={[classes.label_paddings, classes.alert_level]}>
+                        {/* Alert 2 */}
+                        {`Alert ${leo.public_alert_level}`}
+                    </Typography>
+                    <Typography variant="h5">
+                        {/* As of October 6, 2019 04:00 AM */}
+                        {`As of ${as_of}`}
+                    </Typography>
+                    <Typography variant="h5">
+                        {/* No new retriggers */}
+                        {prepareTriggers(leo.release_triggers)}
+                    </Typography>
+                    <Typography variant="h5" className={classes.label_paddings}>
+                        {/* Event Start: October 5, 2019 12:00 PM */}
+                        {`Event Start: ${event_start}`}
+                    </Typography>
+                    <Typography variant="h5" className={classes.label_paddings}>
+                        {/* Validity: October 7, 2019 12:00 PM */}
+                        {`Validity: ${validity}`}
+                    </Typography>
+                    <Typography variant="h5" className={classes.label_paddings}>
+                        {/* Recommended Response: Prepare for evacuation */}
+                        {`Recommended Response: ${leo.recommended_response}`}
+                    </Typography>
+                </Grid>
+                <Grid item xs={6}>
+                    <Typography variant="h2" align="center" className={classes.label_paddings}>
+                        Triggers
+                    </Typography>
+                    { prepareTriggers(leo.latest_event_triggers) }
+                </Grid>
+                <Grid item xs={12} align="right">
+                    <Box style={{paddingTop: 100}}>
+                        Prepared by: {leo.reporter}
+                    </Box>
+                </Grid>
+            </Fragment>
+        );
+    } else {
+        return (
+            <Typography variant="h2">No activity in site</Typography>
+        )
+    }
+}
+
 function LatestCurrentAlert() {
     const classes = useStyles();
-    const [modal, setModal] = useState([<TransitionalModal status={false} />])
+    const [modal, setModal] = useState([<TransitionalModal status={false} />]);
+    const [leo, setLeo] = useState("empty");
+    const [releaseStatus, setReleaseStatus] = useState("No event on site.");
+
+    useEffect(() => {
+        console.log(`${AppConfig.HOSTNAME}/api/alert_gen/public_alerts/get_ongoing_and_extended_monitoring`);
+
+        Helper.httpRequest(
+            `${AppConfig.HOSTNAME}/api/alert_gen/public_alerts/get_ongoing_and_extended_monitoring`,
+            "GET", [], null
+        )
+        .then(({data, status}) => {
+            console.log(data, status);
+            let key = "";
+            if (data.latest.length > 0) key = "latest";
+            else if (data.overdue.length > 0) key = "overdue";
+            else if (data.extended.length > 0) key = "extended";
+
+            if (key in data) {
+                const site_data = data[key].find(site_data => site_data.site_id === 29);
+                setLeo(site_data);
+            } else {
+                console.error("There is something wrong with the code in latest current alert");
+            }
+        })
+        .catch(error => console.error(`Problem in getting active envets: Here's the error => ${error}`));
+
+    }, []);
 
     function sendEmail() {
         setModal([<TransitionalModal status={true} />])
@@ -144,42 +245,7 @@ function LatestCurrentAlert() {
         <Fragment>
             <Container fixed>
                 <Grid container spacing={2}>
-                    <Grid item xs={6} align="center">
-                        <Typography variant="h2" className={[classes.label_paddings, classes.alert_level]}>
-                            Alert 2
-                        </Typography>
-                        <Typography variant="h5">
-                            As of October 6, 2019 04:00 AM
-                        </Typography>
-                        <Typography variant="h5">
-                            No new retriggers
-                        </Typography>
-                        <Typography variant="h5" className={classes.label_paddings}>
-                            Event Start: October 5, 2019 12:00 PM
-                        </Typography>
-                        <Typography variant="h5" className={classes.label_paddings}>
-                            Validity: October 7, 2019 12:00 PM
-                        </Typography>
-                        <Typography variant="h5" className={classes.label_paddings}>
-                            Recommended Response: Prepare for evacuation
-                        </Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                        <Typography variant="h2" align="center" className={classes.label_paddings}>
-                            Triggers
-                        </Typography>
-                        <Typography variant="h5" className={classes.label_paddings}>
-                            Rainfall Trigger: RAIN_MARG 1-day cumulative rainfall (100.00 mm) exceeded threshold (56.55mm)
-                        </Typography>
-                        <Typography variant="h5" className={classes.label_paddings}>
-                            Manifestation of Movements Trigger: New Crack near Crack C
-                        </Typography>
-                    </Grid>
-                    <Grid item xs={12} align="right">
-                        <Box style={{paddingTop: 100}}>
-                            Prepared by: Carlo bontia, Tine Dumagan
-                        </Box>
-                    </Grid>
+                    <CurrentAlertArea leo={leo} classes={classes} />
                 </Grid>
                 <Grid container justify="center" className={classes.menu_functions}>
                     <Grid item xs={3}>
