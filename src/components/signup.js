@@ -3,7 +3,7 @@ import {
 	Avatar, Button, CssBaseline,
 	TextField, Link, Grid, Box,
 	Container
-} fom "@material-ui/core";
+} from "@material-ui/core";
 import InputMask from 'react-input-mask';
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import Typography from "@material-ui/core/Typography";
