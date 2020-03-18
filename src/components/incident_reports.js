@@ -61,8 +61,6 @@ function getWindowDimensions() {
     };
 }
 
-
-
 function IncidentReports() {
     const img = imageStyle();
     const summary = summaryStyle();
