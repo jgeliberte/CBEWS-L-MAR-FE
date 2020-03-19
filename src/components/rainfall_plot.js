@@ -181,7 +181,7 @@ function prepareCumulativeRainfallChartOption(row, input) {
     const max_72h = 0;
     
     const { ts_start, ts_end, site_code } = input;
-    console.log(series_data);
+
     return {
         series: series_data,
         chart: {
@@ -227,7 +227,7 @@ function prepareCumulativeRainfallChartOption(row, input) {
             title: {
                 text: "<b>Value (mm)</b>"
             },
-            max: Math.max(0, (max_72h - parseFloat())) + parseFloat(max_rain_2year),
+            max: Math.max(0, (max_72h - parseFloat(max_rain_2year))) + parseFloat(max_rain_2year),
             min: 0,
             plotBands: [{
                 value: Math.round(parseFloat(max_rain_2year / 2) * 10) / 10,
