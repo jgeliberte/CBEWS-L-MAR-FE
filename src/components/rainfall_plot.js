@@ -69,7 +69,13 @@ function prepareRainfallData(set) {
     set['72h'] = hr_72;
     set['rain'] = rain;
     let null_ranges = [{from: moment(set['ts_start']).unix(), to: moment(set['ts_end']).unix()}]
+    set['null_ranges'] = null_ranges;
     Object.keys(rainfall_colors).forEach((name) => {
+        set[name].forEach(element => {
+            if (element[1] == undefined) {
+                element[1] = 0;
+            }
+        });
         const color = rainfall_colors[name];
         const entry = {
             name,
@@ -172,9 +178,10 @@ function prepareCumulativeRainfallChartOption(row, input) {
         distance,
         threshold_value: max_rain_2year, gauge_name
     } = set;
-    const max_72h = 200;
+    const max_72h = 0;
     
     const { ts_start, ts_end, site_code } = input;
+    console.log(series_data);
     return {
         series: series_data,
         chart: {
@@ -574,6 +581,7 @@ function RainfallPlot(props) {
         processed_data.forEach(data => {
             if (feature === "data_analysis" || feature === "alert_validation") {
                 const cumulative = prepareCumulativeRainfallChartOption(data, input);
+                console.log(cumulative)
                 temp.push({ cumulative });
             } else {
                 const instantaneous = prepareInstantaneousRainfallChartOption(data, input);
