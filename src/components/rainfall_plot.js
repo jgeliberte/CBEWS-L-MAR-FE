@@ -68,7 +68,7 @@ function prepareRainfallData(set) {
     set['24h'] = hr_24;
     set['72h'] = hr_72;
     set['rain'] = rain;
-    let null_ranges = [{from: moment(set['ts_start']).unix(), to: moment(set['ts_end']).unix()}]
+    let null_ranges = [{ from: moment(set['ts_start']).unix(), to: moment(set['ts_end']).unix() }]
     set['null_ranges'] = null_ranges;
     Object.keys(rainfall_colors).forEach((name) => {
         set[name].forEach(element => {
@@ -92,7 +92,7 @@ function prepareRainfallData(set) {
     });
 
     const null_processed = null_ranges.map(({ from, to }) => ({ from, to, color: "rgba(68, 170, 213, 0.3)" }));
-    return { set, series_data, max_rval_data , null_processed};
+    return { set, series_data, max_rval_data, null_processed };
 }
 
 function prepareInstantaneousRainfallChartOption(row, input) {
@@ -179,7 +179,7 @@ function prepareCumulativeRainfallChartOption(row, input) {
         threshold_value: max_rain_2year, gauge_name
     } = set;
     const max_72h = 0;
-    
+
     const { ts_start, ts_end, site_code } = input;
 
     return {
@@ -546,7 +546,6 @@ function RainfallPlot(props) {
     }, [])
 
     const initRainfall = (site_code = 'mar') => {
-        console.log(`${AppConfig.HOSTNAME}/api/data_analysis/rainfall/plot/data/${site_code}`)
         fetch(`${AppConfig.HOSTNAME}/api/data_analysis/rainfall/plot/data/${site_code}`, {
             method: 'GET',
             headers: {
@@ -556,14 +555,13 @@ function RainfallPlot(props) {
         }).then((response) => response.json())
             .then((responseJson) => {
                 let rainfall_data = responseJson[0];
-                console.log(rainfall_data)
                 setRainfallData(rainfall_data)
                 prepRainPlot(rainfall_data.plot, rainfall_data.ts_start, rainfall_data.ts_end)
             })
             .catch((error) => {
                 console.log(error);
             }
-        );
+            );
     }
 
     const prepRainPlot = (rainfall, ts_start, ts_end) => {
@@ -577,11 +575,10 @@ function RainfallPlot(props) {
 
     const renderGraph = (processed_data, start, end) => {
         const temp = [];
-        const input = {ts_end: end, ts_start: start, site_code: "MAR"}
+        const input = { ts_end: end, ts_start: start, site_code: "MAR" }
         processed_data.forEach(data => {
             if (feature === "data_analysis" || feature === "alert_validation") {
                 const cumulative = prepareCumulativeRainfallChartOption(data, input);
-                console.log(cumulative)
                 temp.push({ cumulative });
             } else {
                 const instantaneous = prepareInstantaneousRainfallChartOption(data, input);
@@ -592,8 +589,8 @@ function RainfallPlot(props) {
         return temp
     }
 
-    const createData = (date_time, mm ) => {
-        return { date_time, mm};
+    const createData = (date_time, mm) => {
+        return { date_time, mm };
     }
 
     const rows = [
@@ -660,12 +657,14 @@ function RainfallPlot(props) {
                                     {instantaneous_table}
                                 </Fragment>
                             );
-                        }):
-                        <Grid item xs={12}>
-                            <Typography align='justify' variant='h2'>
-                            Loading rainfall graph
-                            </Typography>
-                        </Grid>
+                        }) :
+                            <Grid item xs={12}>
+                                <Paper>
+                                    <Typography align='center'>
+                                            Loading rainfall graph
+                                    </Typography>
+                                </Paper>
+                            </Grid>
                     }
                 </Grid>
             </Container>
