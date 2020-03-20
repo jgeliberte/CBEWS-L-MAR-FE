@@ -8,8 +8,6 @@ import {
 } from "@material-ui/core";
 import AppConfig from "../reducers/AppConfig";
 
-import { getSurficialPlotData } from './sample_surficial_not_final'
-
 const useStyles = makeStyles(theme => ({
 
     button_fluid: {
@@ -22,20 +20,24 @@ const useStyles = makeStyles(theme => ({
 function prepareOptions(input, data, width) {
     const subtext = "";
     const { site_code, timestamps } = input;
-    const { start, end } = timestamps;
+    const { start, end } = timestamps
     const start_date = moment(start, "YYYY-MM-DD HH:mm:ss");
     const end_date = moment(end, "YYYY-MM-DD HH:mm:ss");
+    
+    data.forEach(element => {
+        element.data.forEach(row => {
+            row.x =  Date.parse(moment.unix(row.x).format("YYYY-MM-DD HH:mm:ss"))
+        });
+    });
 
     const font_size = "1rem"
-    
     return {
-        title: {
+        title: {    
             text: `<b>Surficial Data History Chart of ${site_code.toUpperCase()}</b>`,
             style: { fontSize: font_size },
             margin: 36,
             y: 18
         },
-        time: { timezoneOffset: -8 * 60 },
         series: data,
         chart: {
             type: "line",
@@ -53,7 +55,7 @@ function prepareOptions(input, data, width) {
             spacingRight: 24
         },
         subtitle: {
-            text: `${subtext}As of: <b>${moment(end_date).format("D MMM YYYY, HH:mm")}</b>`,
+            text: `${subtext}As of: <b>${moment(end_date).format("YYYY-MM-DD HH:mm:ss")}</b>`,
             style: { fontSize: "0.75rem" }
         },
         yAxis: {
@@ -62,7 +64,7 @@ function prepareOptions(input, data, width) {
             }
         },
         xAxis: {
-            min: Date.parse(start_date),
+            min:  Date.parse(start_date),
             max: Date.parse(end_date),
             type: "datetime",
             dateTimeLabelFormats: {
@@ -147,7 +149,7 @@ function SurficialPlot(props) {
         );
     }
 
-    function downloadGraph() {
+    const downloadGraph = () => {
         setModal([<TransitionalModal status={true} />])
         setTimeout(() => {
             setModal([<TransitionalModal status={false} />])
@@ -155,7 +157,7 @@ function SurficialPlot(props) {
         }, 3000)
     }
 
-    function printGraph() {
+    const printGraph = () => {
         setModal([<TransitionalModal status={true} />])
         setTimeout(() => {
             setModal([<TransitionalModal status={false} />])
