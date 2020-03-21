@@ -4,7 +4,6 @@ import {
 	TextField, Link, Grid, Box,
 	Container
 } from "@material-ui/core";
-import InputMask from 'react-input-mask';
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";

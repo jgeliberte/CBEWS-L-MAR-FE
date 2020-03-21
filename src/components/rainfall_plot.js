@@ -1,11 +1,13 @@
-import React, { useState, Fragment } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import * as moment from "moment";
-import { Grid, Paper, Container,
-     Fab, makeStyles, Table,
-     TableBody, TableCell, TableHead,
-     TableRow } from "@material-ui/core";
+import {
+    Grid, Paper, Container,
+    Fab, makeStyles, Table,
+    TableBody, TableCell, TableHead,
+    TableRow, Typography
+} from "@material-ui/core";
 import { sample_rain_data } from "./sample_rain_data._not_final";
 import TransitionalModal from '../reducers/loading';
 import {
@@ -13,6 +15,7 @@ import {
     KeyboardDatePicker,
 } from '@material-ui/pickers';
 import MomentUtils from '@date-io/moment';
+import AppConfig from "../reducers/AppConfig";
 
 window.moment = moment;
 
@@ -41,11 +44,38 @@ const tableStyle = makeStyles(theme => ({
 }));
 
 function prepareRainfallData(set) {
-    const { null_ranges } = set;
     const series_data = [];
     const max_rval_data = [];
+    const hr_24 = [];
+    const hr_72 = [];
+    const rain = [];
+    const max_72h = 0;
 
+    set.data.forEach((hr24) => {
+        hr_24.push([moment(hr24.ts).unix(), hr24['24hr cumulative rainfall']])
+    })
+
+    set.data.forEach((hr72) => {
+        hr_72.push([moment(hr72.ts).unix(), hr72['72hr cumulative rainfall']])
+    })
+
+    set.data.forEach((data) => {
+        rain.push([moment(data.ts).unix(), data['rain']])
+    })
+
+    delete set['data']
+
+    set['24h'] = hr_24;
+    set['72h'] = hr_72;
+    set['rain'] = rain;
+    let null_ranges = [{ from: moment(set['ts_start']).unix(), to: moment(set['ts_end']).unix() }]
+    set['null_ranges'] = null_ranges;
     Object.keys(rainfall_colors).forEach((name) => {
+        set[name].forEach(element => {
+            if (element[1] == undefined) {
+                element[1] = 0;
+            }
+        });
         const color = rainfall_colors[name];
         const entry = {
             name,
@@ -145,9 +175,11 @@ function prepareInstantaneousRainfallChartOption(row, input) {
 function prepareCumulativeRainfallChartOption(row, input) {
     const { set, series_data } = row;
     const {
-        distance, max_72h,
+        distance,
         threshold_value: max_rain_2year, gauge_name
     } = set;
+    const max_72h = 0;
+
     const { ts_start, ts_end, site_code } = input;
 
     return {
@@ -261,26 +293,289 @@ function syncExtremes(e) {
     }
 }
 
+// function RainfallPlot(props) {
+//     const { feature } = props
+//     const input = { ts_end: "2019-06-24 01:00:00", ts_start: "2019-06-17 01:00:00", site_code: "MAR" };
+//     const [selectedStartDate, setSelectedStartDate] = useState(new Date());
+//     const [selectedEndDate, setSelectedEndDate] = useState(new Date());
+//     const processed_data = [];
+
+//     const fetchRainfall = (site_code = 'umi') => {
+//         return fetch(`${AppConfig.HOSTNAME}/api/data_analysis/rainfall/plot/data/${site_code}`, {
+//             method: 'GET',
+//             headers: {
+//                 Accept: 'application/json',
+//                 'Content-Type': 'application/json',
+//             }
+//         }).then((response) => response.json())
+//     }
+
+//     function renderGraph() {
+//         const temp = [];
+//         processed_data.forEach(data => {
+//             if (feature === "data_analysis" || feature === "alert_validation") {
+//                 const cumulative = prepareCumulativeRainfallChartOption(data, input);
+//                 temp.push({ cumulative });
+//             } else {
+//                 const instantaneous = prepareInstantaneousRainfallChartOption(data, input);
+//                 temp.push({ instantaneous });
+//             }
+//         });
+//         return temp
+//     }
+
+//     const [rainfallData, setRainfallData] = useState(fetchRainfall);
+//     const [options, setOptions] = useState(renderGraph());
+
+//     const [modal, setModal] = useState([<TransitionalModal status={false} />])
+
+//     const classes = useStyles();
+//     const dt_classes = tableStyle();
+
+//     // const rainfall_data = fetchRainfallPlotData();
+//     // console.log(rainfall_data)
+//     // rainfall_data.forEach(set => {
+//     //     const data = prepareRainfallData(set);
+//     //     processed_data.push(data);
+//     // });
+
+
+
+//     const handleSelectedStartDate = date => {
+//         setSelectedStartDate(date);
+//     };
+
+//     const handleSelectedEndDate = date => {
+//         setSelectedEndDate(date);
+//     };
+
+//     function enableDownloadPrint(feature) {
+//         if (feature === "data_analysis") {
+//             return (
+//                 <Grid container align="center" style={{ paddingTop: 20 }}>
+//                     <Grid item xs={3} />
+//                     <Grid item xs={3}>
+//                         <Fab variant="extended"
+//                             color="primary"
+//                             aria-label="add" classNarainfall_datame={classes.button_fluid}
+//                             onClick={() => { console.log(rainfallData); downloadGraph(); }}>
+//                             Download
+//                 </Fab>
+//                     </Grid>
+//                     <Grid item xs={3}>
+//                         <Fab variant="extended"
+//                             color="primary"
+//                             aria-label="add" className={classes.button_fluid}
+//                             onClick={() => { printGraph() }}>
+//                             Print
+//                 </Fab>
+//                     </Grid>
+//                     <Grid item xs={3} />
+//                 </Grid>
+//             )
+//         }
+//     }
+
+//     function enableDataGeneratorOptions(feature) {
+//         let ret_val = [];
+//         if (feature === "sensor_data") {
+//             ret_val.push(
+//                 <Grid container align="center" style={{ paddingTop: 20 }}>
+//                     <Grid item xs={2} />
+//                     <Grid item xs={3}>
+//                         <MuiPickersUtilsProvider utils={MomentUtils}>
+//                             <KeyboardDatePicker
+//                                 disableToolbar
+//                                 variant="inline"
+//                                 format="MM-DD-YYYY HH:mm:ss"
+//                                 margin="normal"
+//                                 id="date-picker-start"
+//                                 label="Date Start"
+//                                 value={selectedStartDate}
+//                                 onChange={handleSelectedStartDate}
+//                                 KeyboardButtonProps={{
+//                                     'aria-label': 'change date',
+//                                 }}
+//                             />
+//                         </MuiPickersUtilsProvider>
+//                     </Grid>
+//                     <Grid item xs={3}>
+//                         <MuiPickersUtilsProvider utils={MomentUtils}>
+//                             <KeyboardDatePicker
+//                                 disableToolbar
+//                                 variant="inline"
+//                                 format="MM-DD-YYYY HH:mm:ss"
+//                                 margin="normal"
+//                                 id="date-picker-end"
+//                                 label="Date End"
+//                                 value={selectedEndDate}
+//                                 onChange={handleSelectedEndDate}
+//                                 KeyboardButtonProps={{
+//                                     'aria-label': 'change date',
+//                                 }}
+//                             />
+//                         </MuiPickersUtilsProvider>
+//                     </Grid>
+//                     <Grid item xs={2}>
+//                         <Fab variant="extended"
+//                             color="primary"
+//                             aria-label="add" className={classes.button_fluid}
+//                             onClick={() => { }}>
+//                             Generate
+//                         </Fab>
+//                     </Grid>
+//                     <Grid item xs={2} />
+//                 </Grid>
+//             )
+//         }
+//         return ret_val;
+//     };
+
+//     function downloadGraph() {
+//         setModal([<TransitionalModal status={true} />])
+//         setTimeout(() => {
+//             setModal([<TransitionalModal status={false} />])
+//             alert("Download success!")
+//         }, 3000)
+//     }
+
+//     function printGraph() {
+//         setModal([<TransitionalModal status={true} />])
+//         setTimeout(() => {
+//             setModal([<TransitionalModal status={false} />])
+//             alert("Print success!")
+//         }, 3000)
+//     }
+
+//     function createData(date_time, mm) {
+//         return { date_time, mm };
+//     }
+
+//     const rows = [
+//         createData('2019-10-06 04:00:00', '30 mm'),
+//         createData('2019-10-06 03:30:00', '02 mm'),
+//         createData('2019-10-06 03:00:00', '07 mm'),
+//         createData('2019-10-06 02:30:00', '10 mm'),
+//         createData('2019-10-06 02:00:00', '00 mm'),
+//         createData('2019-10-06 01:30:00', '01 mm'),
+//         createData('2019-10-06 01:00:00', '00 mm'),
+//     ];
+
+//     return (
+//         <Fragment>
+//         </Fragment>
+//         // {<Fragment>
+//         //     <Container>
+//         //         <Grid container spacing={4}>
+//         //             {
+//         //                 options.map((option, i) => {
+//         //                     let opt;
+//         //                     let grid_size;
+//         //                     let instantaneous_table = []
+//         //                     if (feature === "data_analysis" || feature === "alert_validation") {
+//         //                         opt = option.cumulative;
+//         //                         grid_size = 12
+//         //                     } else {
+//         //                         opt = option.instantaneous;
+//         //                         grid_size = 6
+//         //                         instantaneous_table.push(
+
+//         //                             <Grid item xs={grid_size}>
+//         //                                 <Paper>
+//         //                                     <Table className={dt_classes.table}>
+//         //                                         <TableHead>
+//         //                                             <TableRow>
+//         //                                                 <TableCell>Date and time</TableCell>
+//         //                                                 <TableCell>Rain (mm / 30 mins)</TableCell>
+//         //                                             </TableRow>
+//         //                                         </TableHead>
+//         //                                         <TableBody>
+//         //                                             {rows.map(row => (
+//         //                                                 <TableRow key={row.date_time}>
+//         //                                                     <TableCell component="th" scope="row">
+//         //                                                         {row.date_time}
+//         //                                                     </TableCell>
+//         //                                                     <TableCell>{row.mm}</TableCell>
+//         //                                                 </TableRow>
+//         //                                             ))}
+//         //                                         </TableBody>
+//         //                                     </Table>
+//         //                                 </Paper>
+//         //                             </Grid>
+//         //                         )
+//         //                     }
+
+//         //                     return (
+//         //                         <Fragment key={i}>
+//         //                             <Grid item xs={grid_size} md={6}>
+//         //                                 <Paper>
+//         //                                     <HighchartsReact
+//         //                                         highcharts={Highcharts}
+//         //                                         options={opt}
+//         //                                     />
+//         //                                 </Paper>
+//         //                             </Grid>
+//         //                             {instantaneous_table}
+//         //                         </Fragment>
+//         //                     );
+//         //                 })
+//         //             }
+//         //         </Grid>
+//         //         {enableDownloadPrint(feature)}
+//         //         {enableDataGeneratorOptions(feature)}
+//         //     </Container>
+//         //     {modal}
+//         // </Fragment>}
+//     );
+// }
+
 function RainfallPlot(props) {
+
     const { feature } = props
-    const rainfall_data = sample_rain_data;
     const input = { ts_end: "2019-06-24 01:00:00", ts_start: "2019-06-17 01:00:00", site_code: "MAR" };
-    const [selectedStartDate, setSelectedStartDate] = useState(new Date());
-    const [selectedEndDate, setSelectedEndDate] = useState(new Date());
-
+    const [rainfallData, setRainfallData] = useState();
+    const [options, setOptions] = useState();
+    const [loadGraph, setLoadGraph] = useState(false);
     const processed_data = [];
-    rainfall_data.forEach(set => {
-        const data = prepareRainfallData(set);
-        processed_data.push(data);
-    });
 
-    const [options, setOptions] = useState(renderGraph());
-    const [modal, setModal] = useState([<TransitionalModal status={false} />])
     const classes = useStyles();
     const dt_classes = tableStyle();
 
-    function renderGraph() {
+    useEffect(() => {
+        initRainfall()
+    }, [])
+
+    const initRainfall = (site_code = 'mar') => {
+        fetch(`${AppConfig.HOSTNAME}/api/data_analysis/rainfall/plot/data/${site_code}`, {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            }
+        }).then((response) => response.json())
+            .then((responseJson) => {
+                let rainfall_data = responseJson[0];
+                setRainfallData(rainfall_data)
+                prepRainPlot(rainfall_data.plot, rainfall_data.ts_start, rainfall_data.ts_end)
+            })
+            .catch((error) => {
+                console.log(error);
+            }
+            );
+    }
+
+    const prepRainPlot = (rainfall, ts_start, ts_end) => {
+        rainfall.forEach(set => {
+            const data = prepareRainfallData(set, ts_start, ts_end);
+            processed_data.push(data);
+        });
+        setOptions(renderGraph(processed_data, ts_start, ts_end))
+        setLoadGraph(true);
+    }
+
+    const renderGraph = (processed_data, start, end) => {
         const temp = [];
+        const input = { ts_end: end, ts_start: start, site_code: "MAR" }
         processed_data.forEach(data => {
             if (feature === "data_analysis" || feature === "alert_validation") {
                 const cumulative = prepareCumulativeRainfallChartOption(data, input);
@@ -294,114 +589,8 @@ function RainfallPlot(props) {
         return temp
     }
 
-    const handleSelectedStartDate = date => {
-        setSelectedStartDate(date);
-    };
-
-    const handleSelectedEndDate = date => {
-        setSelectedEndDate(date);
-    };
-
-    function enableDownloadPrint(feature) {
-        if (feature === "data_analysis") {
-            return (
-                <Grid container align="center" style={{ paddingTop: 20 }}>
-                    <Grid item xs={3} />
-                    <Grid item xs={3}>
-                        <Fab variant="extended"
-                            color="primary"
-                            aria-label="add" className={classes.button_fluid}
-                            onClick={() => { downloadGraph() }}>
-                            Download
-                </Fab>
-                    </Grid>
-                    <Grid item xs={3}>
-                        <Fab variant="extended"
-                            color="primary"
-                            aria-label="add" className={classes.button_fluid}
-                            onClick={() => { printGraph() }}>
-                            Print
-                </Fab>
-                    </Grid>
-                    <Grid item xs={3} />
-                </Grid>
-            )
-        }
-    }
-
-    function enableDataGeneratorOptions(feature) {
-        let ret_val = [];
-        if (feature === "sensor_data") {
-            ret_val.push(
-                <Grid container align="center" style={{ paddingTop: 20 }}>
-                    <Grid item xs={2} />
-                    <Grid item xs={3}>
-                        <MuiPickersUtilsProvider utils={MomentUtils}>
-                            <KeyboardDatePicker
-                                disableToolbar
-                                variant="inline"
-                                format="MM-DD-YYYY HH:mm:ss"
-                                margin="normal"
-                                id="date-picker-start"
-                                label="Date Start"
-                                value={selectedStartDate}
-                                onChange={handleSelectedStartDate}
-                                KeyboardButtonProps={{
-                                    'aria-label': 'change date',
-                                }}
-                            />
-                        </MuiPickersUtilsProvider>
-                    </Grid>
-                    <Grid item xs={3}>
-                        <MuiPickersUtilsProvider utils={MomentUtils}>
-                            <KeyboardDatePicker
-                                disableToolbar
-                                variant="inline"
-                                format="MM-DD-YYYY HH:mm:ss"
-                                margin="normal"
-                                id="date-picker-end"
-                                label="Date End"
-                                value={selectedEndDate}
-                                onChange={handleSelectedEndDate}
-                                KeyboardButtonProps={{
-                                    'aria-label': 'change date',
-                                }}
-                            />
-                        </MuiPickersUtilsProvider>
-                    </Grid>
-                    <Grid item xs={2}>
-                        <Fab variant="extended"
-                            color="primary"
-                            aria-label="add" className={classes.button_fluid}
-                            onClick={() => { }}>
-                            Generate
-                        </Fab>
-                    </Grid>
-                    <Grid item xs={2} />
-                </Grid>
-            )
-        }
-        return ret_val;
-    };
-
-    function downloadGraph() {
-        setModal([<TransitionalModal status={true} />])
-        setTimeout(() => {
-            setModal([<TransitionalModal status={false} />])
-            alert("Download success!")
-        }, 3000)
-    }
-
-    function printGraph() {
-        setModal([<TransitionalModal status={true} />])
-        setTimeout(() => {
-            setModal([<TransitionalModal status={false} />])
-            alert("Print success!")
-        }, 3000)
-    }
-
-    function createData(date_time, mm ) {
-        return { date_time, mm};
+    const createData = (date_time, mm) => {
+        return { date_time, mm };
     }
 
     const rows = [
@@ -419,7 +608,7 @@ function RainfallPlot(props) {
             <Container>
                 <Grid container spacing={4}>
                     {
-                        options.map((option, i) => {
+                        loadGraph ? options.map((option, i) => {
                             let opt;
                             let grid_size;
                             let instantaneous_table = []
@@ -430,32 +619,31 @@ function RainfallPlot(props) {
                                 opt = option.instantaneous;
                                 grid_size = 6
                                 instantaneous_table.push(
-                                    
-                        <Grid item xs={grid_size}>
-                        <Paper>
-                            <Table className={dt_classes.table}>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Date and time</TableCell>
-                                        <TableCell>Rain (mm / 30 mins)</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {rows.map(row => (
-                                        <TableRow key={row.date_time}>
-                                            <TableCell component="th" scope="row">
-                                                {row.date_time}
-                                            </TableCell>
-                                            <TableCell>{row.mm}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </Paper>
-                    </Grid>
+
+                                    <Grid item xs={grid_size}>
+                                        <Paper>
+                                            <Table className={dt_classes.table}>
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell>Date and time</TableCell>
+                                                        <TableCell>Rain (mm / 30 mins)</TableCell>
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody>
+                                                    {rows.map(row => (
+                                                        <TableRow key={row.date_time}>
+                                                            <TableCell component="th" scope="row">
+                                                                {row.date_time}
+                                                            </TableCell>
+                                                            <TableCell>{row.mm}</TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </Paper>
+                                    </Grid>
                                 )
                             }
-
                             return (
                                 <Fragment key={i}>
                                     <Grid item xs={grid_size} md={6}>
@@ -469,15 +657,18 @@ function RainfallPlot(props) {
                                     {instantaneous_table}
                                 </Fragment>
                             );
-                        })
+                        }) :
+                            <Grid item xs={12}>
+                                <Paper>
+                                    <Typography align='center'>
+                                            Loading rainfall graph
+                                    </Typography>
+                                </Paper>
+                            </Grid>
                     }
                 </Grid>
-                {enableDownloadPrint(feature)}
-                {enableDataGeneratorOptions(feature)}
             </Container>
-            {modal}
         </Fragment>
-    );
+    )
 }
-
 export default RainfallPlot;

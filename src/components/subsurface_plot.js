@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useState, useEffect } from "react";
 
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
@@ -359,8 +359,10 @@ function SubsurfacePlot(props) {
     const [modal, setModal] = useState([<TransitionalModal status={false} />])
     let processed_data = []
 
-
-    function downloadGraph() {
+    useEffect(()=> {
+        initSubsurface();
+    },[])
+    const downloadGraph = () => {
         setModal([<TransitionalModal status={true} />])
         setTimeout(() => {
             setModal([<TransitionalModal status={false} />])
@@ -368,7 +370,7 @@ function SubsurfacePlot(props) {
         }, 3000)
     }
 
-    function printGraph() {
+    const printGraph = () => {
         setModal([<TransitionalModal status={true} />])
         setTimeout(() => {
             setModal([<TransitionalModal status={false} />])

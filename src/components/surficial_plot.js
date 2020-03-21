@@ -1,13 +1,12 @@
-import React, { useState, Fragment } from "react";
+import React, { useState, useEffect,Fragment } from "react";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import TransitionalModal from '../reducers/loading';
 import moment from "moment";
 import {
-    Grid, Paper, Container, Fab, makeStyles
+    Grid, Paper, Container, Fab, makeStyles, Typography
 } from "@material-ui/core";
-
-import { getSurficialPlotData } from './sample_surficial_not_final'
+import AppConfig from "../reducers/AppConfig";
 
 const useStyles = makeStyles(theme => ({
 
@@ -21,20 +20,24 @@ const useStyles = makeStyles(theme => ({
 function prepareOptions(input, data, width) {
     const subtext = "";
     const { site_code, timestamps } = input;
-    const { start, end } = timestamps;
+    const { start, end } = timestamps
     const start_date = moment(start, "YYYY-MM-DD HH:mm:ss");
     const end_date = moment(end, "YYYY-MM-DD HH:mm:ss");
+    
+    data.forEach(element => {
+        element.data.forEach(row => {
+            row.x =  Date.parse(moment.unix(row.x).format("YYYY-MM-DD HH:mm:ss"))
+        });
+    });
 
     const font_size = "1rem"
-
     return {
-        title: {
+        title: {    
             text: `<b>Surficial Data History Chart of ${site_code.toUpperCase()}</b>`,
             style: { fontSize: font_size },
             margin: 36,
             y: 18
         },
-        time: { timezoneOffset: -8 * 60 },
         series: data,
         chart: {
             type: "line",
@@ -52,7 +55,7 @@ function prepareOptions(input, data, width) {
             spacingRight: 24
         },
         subtitle: {
-            text: `${subtext}As of: <b>${moment(end_date).format("D MMM YYYY, HH:mm")}</b>`,
+            text: `${subtext}As of: <b>${moment(end_date).format("YYYY-MM-DD HH:mm:ss")}</b>`,
             style: { fontSize: "0.75rem" }
         },
         yAxis: {
@@ -61,7 +64,7 @@ function prepareOptions(input, data, width) {
             }
         },
         xAxis: {
-            min: Date.parse(start_date),
+            min:  Date.parse(start_date),
             max: Date.parse(end_date),
             type: "datetime",
             dateTimeLabelFormats: {
@@ -103,7 +106,6 @@ function prepareOptions(input, data, width) {
 
 function createSurficialGraph(input, surficial_data, chartRef, width = "md") {
     const options = prepareOptions(input, surficial_data, width);
-
     return <HighchartsReact
         highcharts={Highcharts}
         options={options}
@@ -112,19 +114,42 @@ function createSurficialGraph(input, surficial_data, chartRef, width = "md") {
 }
 
 function SurficialPlot(props) {
-    console.log(props)
+
     const chartRef = React.useRef(null);
-    const site_code = "MAR"
-    const [timestamps, setTimestamps] = useState({ start: "2018-11-08 00:00:00", end: "2019-01-09 00:00:00" });
+    const [timestamps, setTimestamps] = useState();
     const [modal, setModal] = useState([<TransitionalModal status={false} />])
     const classes = useStyles();
-    let surficial_data = [];
-    surficial_data = getSurficialPlotData
+    const [load, setLoad] = useState(false);
+    const [graphComponent, setGraphComponent] = useState([]);
 
-    const input = { site_code, timestamps };
-    const graph_component = createSurficialGraph(input, surficial_data, chartRef);
+    useEffect(() => {
+        initSurficial()
+    }, [])
 
-    function downloadGraph() {
+    const initSurficial = (site_code = 'mar') => {
+        fetch(`${AppConfig.HOSTNAME}/api/data_analysis/surficial/plot/data/${site_code}`, {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            }
+        }).then((response) => response.json())
+            .then((responseJson) => {
+                let {site_code, ts_start, ts_end} = responseJson;
+                let timestamps = {start: ts_start, end: ts_end};
+                let input = {site_code, timestamps};
+                let graph = createSurficialGraph(input, responseJson.surficial_plot, chartRef)
+                setGraphComponent(graph);
+                setTimestamps(timestamps);
+                setLoad(true);
+            })
+            .catch((error) => {
+                console.log(error);
+            }
+        );
+    }
+
+    const downloadGraph = () => {
         setModal([<TransitionalModal status={true} />])
         setTimeout(() => {
             setModal([<TransitionalModal status={false} />])
@@ -132,7 +157,7 @@ function SurficialPlot(props) {
         }, 3000)
     }
 
-    function printGraph() {
+    const printGraph = () => {
         setModal([<TransitionalModal status={true} />])
         setTimeout(() => {
             setModal([<TransitionalModal status={false} />])
@@ -146,9 +171,10 @@ function SurficialPlot(props) {
                 <Grid Container>
                     <Grid item xs={12}>
                         <Paper>
-                            {graph_component}
+                            {
+                                load ? graphComponent : <Typography>Loading</Typography>
+                            }
                         </Paper>
-
                     </Grid>
                     <Grid container align="center" style={{ paddingTop: 20 }}>
                         <Grid item xs={3} />
