@@ -3,16 +3,66 @@ import TransitionalModal from '../reducers/loading';
 import {
     Container, Grid, Fab, Typography,
     Table, TableBody, TableCell, TableHead,
-    TableRow, Paper, Box
+    TableRow, Paper, Box, Divider
 } from '@material-ui/core';
-import {useStyles , tableStyle} from '../styles/general_styles';
+import { useStyles, tableStyle } from '../styles/general_styles';
 import AppConfig from "../reducers/AppConfig";
 import Helper from "../Helpers";
 import moment from "moment";
 
 import RainfallPlot from './rainfall_plot';
 
+function get_charts (release_triggers) {
+    return release_triggers.map(trig => {
+
+        const {trigger} = trig;
+        let chart_load;
+
+        if (trigger === "Rainfall") chart_load = (<Grid item xs={12}><RainfallPlot feature={"alert_validation"} /></Grid>)
+        else if (trigger === "Subsurface") chart_load = (<Grid item xs={12}>subsurface</Grid>)
+        else if (trigger === "Surficial") chart_load = (<Grid item xs={12}>surficial</Grid>)
+        else chart_load = null
+
+        return {
+            ...trig,
+            chart: chart_load
+        }
+    });
+}
+
 function AlertValidation() {
+    const [public_alert, setPublicAlert] = useState("Loading...");
+    const [rows, setRow] = useState([]);
+
+
+    // let rows = [
+    //     createData('2019-10-06 04:00:00', 'Rainfall', 'RAIN_UMIG', 'Exceeded threshold level'),
+    //     createData('2019-10-06 04:00:00', 'MoMs', 'Crack C', 'New crack near Crack C'),
+    // ];
+
+    useEffect(() => {
+        // GET CANDIDATE TRIGGER
+        fetch(`${AppConfig.HOSTNAME}/api/alert_gen/UI/get_mar_alert_validation_data`, {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            }
+        }).then(response => response.json())
+            .then(responseJson => {
+                console.log("responseJson", responseJson);
+                setPublicAlert(`Alert ${responseJson["public_alert_level"]}`);
+                return responseJson["release_triggers"];
+            })
+            .then(temp => get_charts(temp))
+            .then(release_triggers => {
+                console.log("release_triggers", release_triggers);
+                setRow(release_triggers);
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    }, []);
 
     function createData(date_time, trigger, data_source, description) {
         return { date_time, trigger, data_source, description };
@@ -26,11 +76,6 @@ function AlertValidation() {
         }
     }
 
-    const rows = [
-        createData('2019-10-06 04:00:00', 'Rainfall', 'RAIN_UMIG', 'Exceeded threshold level'),
-        createData('2019-10-06 04:00:00', 'MoMs', 'Crack C', 'New crack near Crack C'),
-    ];
-
     const dt_classes = tableStyle();
     const classes = useStyles();
 
@@ -38,77 +83,73 @@ function AlertValidation() {
         <Fragment>
             <Container fixed>
                 <Grid container align="center" spacing={10}>
+                    <Grid item xs={12} container spacing={5} >
+                        <Grid item={12}><Typography variant="h3">TRIGGER VALIDATION</Typography></Grid>
+                    </Grid>
+                    
+                    {/* TRIGGER TABLE  */}
+                    {rows.map(row => {
+
+                        return (
+                            <Fragment>
+                                <Grid item xs={3}>
+                                    <Typography variant="h7" align="left">Date Time of Alert: </Typography>
+                                    <Typography variant="h6" align="left">{row.date_time}</Typography>
+                                </Grid>
+                                <Grid item xs={2}>
+                                    <Typography variant="h7" align="left">Trigger: </Typography>
+                                    <Typography variant="h6" align="left">{row.trigger}</Typography>
+                                </Grid>
+                                <Grid item xs={2}>
+                                    <Typography variant="h7" align="left">Data Source:</Typography>
+                                    <Typography variant="h6" align="left">{row.data_source}</Typography>
+                                </Grid>
+                                <Grid item xs={5}>
+                                    <Typography variant="h7" align="left">Description:</Typography>
+                                    <Typography variant="h6" align="left">{row.description}</Typography>
+                                </Grid>
+
+                                {row.chart}
+
+                                <Grid item xs={3} />{/* PREV IS SPACER */}
+
+                                <Grid item xs={3}>
+                                    <Fab variant="extended"
+                                        color="primary"
+                                        aria-label="add" className={classes.button_fluid}
+                                        onClick={() => { validateAlert(true) }}>
+                                        Valid
+                                    </Fab>
+                                </Grid>
+                                <Grid item xs={3}>
+                                    <Fab variant="extended"
+                                        color="primary"
+                                        aria-label="add" className={classes.button_fluid}
+                                        onClick={() => { validateAlert(false) }}>
+                                        Invalid
+                                    </Fab>
+                                </Grid>
+
+                                <Grid item xs={3} />{/* PREV IS SPACER */}
+                                <Grid item xs={12}><Divider /></Grid>
+                            </Fragment>
+                        )
+                    })}
                     <Grid item xs={12}>
                         <Typography variant="h2" className={[classes.label_paddings, classes.alert_level]}>
-                            Alert 2
-                        </Typography>
-                        <Typography variant="h5">
-                            As of October 6, 2019 04:00 AM
-                        </Typography>
-                        <Typography variant="h5" className={classes.label_paddings}>
-                            Rainfall Trigger: RAIN_MARG 1-day cumulative rainfall (100.00 mm) exceeded threshold (56.55mm)
-                        </Typography>
-                        <Typography variant="h5" className={classes.label_paddings}>
-                            Manifestation of Movements Trigger: New Crack near Crack C
-                        </Typography>
-                        <Typography variant="h5" className={classes.label_paddings}>
-                            Event Start: October 5, 2019 12:00 PM
-                        </Typography>
-                        <Typography variant="h5" className={classes.label_paddings}>
-                            Validity: October 7, 2019 12:00 PM
-                        </Typography>
-                        <Typography variant="h5" className={classes.label_paddings}>
-                            Recommended Response: Prepare for evacuation
+                            {public_alert}
                         </Typography>
                     </Grid>
-                    <Grid item xs={3} />
 
-                    <Grid item xs={3}>
+                    <Grid item xs={12}>
                         <Fab variant="extended"
                             color="primary"
                             aria-label="add" className={classes.button_fluid}
-                            onClick={() => { validateAlert(true) }}>
-                            Valid
+                            onClick={() => console.log("RELEASED")}>
+                            Release Alert
                         </Fab>
                     </Grid>
-                    <Grid item xs={3}>
-                        <Fab variant="extended"
-                            color="primary"
-                            aria-label="add" className={classes.button_fluid}
-                            onClick={() => { validateAlert(false) }}>
-                            Invalid
-                        </Fab>
-                    </Grid>
-                    <Grid item xs={3} />
-                    <Grid item xs={12}>
-                        <Paper className={dt_classes.root}>
-                            <Table className={dt_classes.table}>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Date and time of trigger</TableCell>
-                                        <TableCell>Trigger</TableCell>
-                                        <TableCell>Data Source</TableCell>
-                                        <TableCell>Description</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {rows.map(row => (
-                                        <TableRow key={row.date_time}>
-                                            <TableCell component="th" scope="row">
-                                                {row.date_time}
-                                            </TableCell>
-                                            <TableCell>{row.trigger}</TableCell>
-                                            <TableCell>{row.data_source}</TableCell>
-                                            <TableCell>{row.description}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </Paper>
-                    </Grid>
-                    <Grid item xs={12}>
-                        <RainfallPlot feature={"alert_validation"} />
-                    </Grid>
+
                 </Grid>
             </Container>
         </Fragment>
@@ -116,7 +157,7 @@ function AlertValidation() {
 }
 
 
-function CurrentAlertArea (props) {
+function CurrentAlertArea(props) {
     const { leo, classes } = props;
 
     const prepareTriggers = (triggers) => {
@@ -170,10 +211,10 @@ function CurrentAlertArea (props) {
                     <Typography variant="h2" align="center" className={classes.label_paddings}>
                         Triggers
                     </Typography>
-                    { prepareTriggers(leo.latest_event_triggers) }
+                    {prepareTriggers(leo.latest_event_triggers)}
                 </Grid>
                 <Grid item xs={12} align="right">
-                    <Box style={{paddingTop: 100}}>
+                    <Box style={{ paddingTop: 100 }}>
                         Prepared by: {leo.reporter}
                     </Box>
                 </Grid>
@@ -199,20 +240,20 @@ function LatestCurrentAlert() {
             `${AppConfig.HOSTNAME}/api/alert_gen/public_alerts/get_ongoing_and_extended_monitoring`,
             "GET", [], null
         )
-        .then(({data, status}) => {
-            let key = "";
-            if (data.latest.length > 0) key = "latest";
-            else if (data.overdue.length > 0) key = "overdue";
-            else if (data.extended.length > 0) key = "extended";
+            .then(({ data, status }) => {
+                let key = "";
+                if (data.latest.length > 0) key = "latest";
+                else if (data.overdue.length > 0) key = "overdue";
+                else if (data.extended.length > 0) key = "extended";
 
-            if (key in data) {
-                const site_data = data[key].find(site_data => site_data.site_id === 29);
-                setLeo(site_data);
-            } else {
-                console.error("There is something wrong with the code in latest current alert");
-            }
-        })
-        .catch(error => console.error(`Problem in getting active envets: Here's the error => ${error}`));
+                if (key in data) {
+                    const site_data = data[key].find(site_data => site_data.site_id === 29);
+                    setLeo(site_data);
+                } else {
+                    console.error("There is something wrong with the code in latest current alert");
+                }
+            })
+            .catch(error => console.error(`Problem in getting active envets: Here's the error => ${error}`));
 
     }, []);
 

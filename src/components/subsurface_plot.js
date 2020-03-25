@@ -359,9 +359,9 @@ function SubsurfacePlot(props) {
     const [modal, setModal] = useState([<TransitionalModal status={false} />])
     let processed_data = []
 
-    useEffect(()=> {
-        initSubsurface();
-    },[])
+    // useEffect(()=> {
+    //     initSubsurface();
+    // },[])
     const downloadGraph = () => {
         setModal([<TransitionalModal status={true} />])
         setTimeout(() => {
