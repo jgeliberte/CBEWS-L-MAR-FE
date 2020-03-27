@@ -1,66 +1,118 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import {
     Grid, Paper, Container,
     Fab, Table,
     TableBody, TableCell, TableHead,
-    TableRow
+    TableRow, Typography, TablePagination
 } from "@material-ui/core";
 import { useStyles, tableStyle } from '../styles/general_styles';
+import AppConfig from '../reducers/AppConfig';
 
 function EarthquakeTables() {
 
-    function createData(date_time, depth, magnitude, location, latitude, longitude, ) {
-        return { date_time, depth, magnitude, location, latitude, longitude };
+    const [eqAvailable, setEqAvailable] = useState(false)
+    const [eqData, setEqData] = useState([])
+    const [eqDsiplay, setEqDisplay] = useState([]);
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [pageEnd, setPageEnd] = useState(0);
+    const createData = (date_time, depth, magnitude, latitude, longitude, criticial_distance ) =>  {
+        return { date_time, depth, magnitude, latitude, longitude, criticial_distance };
     }
 
-    const rows = [
-        createData('2019-10-06 04:20:00', '12km', '4', '009 km N 87° W of Calatagan (Batangas)', '13.84', '120.55'),
-        createData('2019-10-06 04:00:00', '19km', '6', '002 km N 32° E of Calamba (Laguna)', '14.21', '121.17'),
-        createData('2019-10-06 03:50:00', '23km', '2', '004 km S 44° W of Looc (Occidental Mindoro)', '13.70', '120.23'),
-        createData('2019-10-06 03:30:00', '42km', '3', '008 km N 64° W of Lipa City (Batangas)', '13.97', '121.10'),
-        createData('2019-10-06 03:20:00', '16km', '1', '003 km N 33° W of Aloguinsan (Cebu)', '10.24', '123.54'),
-        createData('2019-10-06 03:00:00', '02km', '1.2', '005 km S 51° W of Danao (Bohol)', '09.92', '124.18'),
-        createData('2019-10-06 02:20:00', '100km', '6', '004 km N 44° W of Cabangan (Zambales)', '15.19', '120.03'),
-        createData('2019-10-06 02:10:00', '33km', '2', '073 km N 68° E of Hinatuan (Surigao Del Sur)', '08.63', '126.96'),
-        createData('2019-10-06 02:00:00', '177km', '2', '17 km S 68° W of Nasugbu (Batangas)', '14.02', '120.48'),
-    ];
+    useEffect(()=> {
+        initEqTables();
+    },[]);
+
+    const initEqTables = () => {
+        fetch(`${AppConfig.HOSTNAME}/api/sensor_data/earthquake/`, {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            }
+        }).then((response) => response.json())
+            .then((responseJson) => {
+                let temp = [];
+                responseJson.data.forEach(element => {
+                    temp.push(createData(
+                        element.ts,
+                        element.dept,
+                        element.mag,
+                        element.lon,
+                        element.lat,
+                        parseFloat(element.criticial_distance)
+                    ))
+                });
+                setEqData(temp);
+                setEqDisplay(temp.slice(10))
+                setEqAvailable(true);
+            })
+            .catch((error) => {
+                console.log(error);
+            }
+        );
+    }
 
     const dt_classes = tableStyle();
     const classes = useStyles();
 
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+      };
+    
+      const handleChangeRowsPerPage = event => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+      };
     return (
         <Fragment>
             <Container fixed>
                 <Grid container align="center" spacing={10}>
                     <Grid item xs={12}>
-                        <Paper className={dt_classes.root}>
-                            <Table className={dt_classes.table}>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Date and time</TableCell>
-                                        <TableCell>Depth</TableCell>
-                                        <TableCell>Magnitude</TableCell>
-                                        <TableCell>Location</TableCell>
-                                        <TableCell>Longitude</TableCell>
-                                        <TableCell>Latitude</TableCell>
+                        { eqAvailable ? <Paper className={dt_classes.root}>
+                        <Table className={dt_classes.table}>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Date and time</TableCell>
+                                    <TableCell>Depth</TableCell>
+                                    <TableCell>Magnitude</TableCell>
+                                    <TableCell>Longitude</TableCell>
+                                    <TableCell>Latitude</TableCell>
+                                    <TableCell>Critical Distance</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {eqDsiplay.map(row => (
+                                    <TableRow key={row.date_time}>
+                                        <TableCell component="th" scope="row">
+                                            {row.date_time}
+                                        </TableCell>
+                                        <TableCell>{row.depth}</TableCell>
+                                        <TableCell>{row.magnitude}</TableCell>
+                                        <TableCell>{row.latitude}</TableCell>
+                                        <TableCell>{row.longitude}</TableCell>
+                                        <TableCell>{row.criticial_distance}</TableCell>
                                     </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {rows.map(row => (
-                                        <TableRow key={row.date_time}>
-                                            <TableCell component="th" scope="row">
-                                                {row.date_time}
-                                            </TableCell>
-                                            <TableCell>{row.depth}</TableCell>
-                                            <TableCell>{row.magnitude}</TableCell>
-                                            <TableCell>{row.location}</TableCell>
-                                            <TableCell>{row.latitude}</TableCell>
-                                            <TableCell>{row.longitude}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </Paper>
+                                ))}
+                            </TableBody>
+                            <TablePagination
+                                rowsPerPageOptions={[5, 10, 25]}
+                                component="div"
+                                count={eqData.length}
+                                rowsPerPage={rowsPerPage}
+                                page={page}
+                                onChangePage={handleChangePage}
+                                onChangeRowsPerPage={handleChangeRowsPerPage}
+                            />
+                        </Table>
+                    </Paper> :
+                    <Paper>
+                        <Typography align='center'>
+                                Loading earthquake plot
+                        </Typography>
+                    </Paper>
+                    }
                     </Grid>
                     <Grid container align="center" style={{ paddingTop: 20 }}>
                         <Grid item xs={3} />

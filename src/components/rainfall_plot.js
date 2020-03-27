@@ -101,7 +101,6 @@ function prepareInstantaneousRainfallChartOption(row, input) {
         distance, max_rval, gauge_name
     } = set;
     const { ts_start, ts_end, site_code } = input;
-
     return {
         series: max_rval_data,
         chart: {
@@ -296,11 +295,11 @@ function syncExtremes(e) {
 function RainfallPlot(props) {
 
     const { feature } = props
-    const input = { ts_end: "2019-06-24 01:00:00", ts_start: "2019-06-17 01:00:00", site_code: "MAR" };
     const [rainfallData, setRainfallData] = useState();
     const [options, setOptions] = useState();
     const [loadGraph, setLoadGraph] = useState(false);
     const processed_data = [];
+    const [instantaneousDt, setInstantaneousDt] = useState([]);
 
     const classes = useStyles();
     const dt_classes = tableStyle();
@@ -346,7 +345,14 @@ function RainfallPlot(props) {
                 temp.push({ cumulative });
             } else {
                 const instantaneous = prepareInstantaneousRainfallChartOption(data, input);
+                let temp_raw_dt = [];
+                let last_five_data_points = data.max_rval_data[0].data.slice(-6 );
+                last_five_data_points.forEach(element => {
+                    console.log();
+                    temp_raw_dt.push(createData(moment.unix(element[0]).format("YYYY-MM-DD HH:mm:ss"), `${element[1]} mm`))
+                });
                 temp.push({ instantaneous });
+                setInstantaneousDt(temp_raw_dt.reverse());
             }
 
         });
@@ -356,17 +362,7 @@ function RainfallPlot(props) {
     const createData = (date_time, mm) => {
         return { date_time, mm };
     }
-
-    const rows = [
-        createData('2019-10-06 04:00:00', '30 mm'),
-        createData('2019-10-06 03:30:00', '02 mm'),
-        createData('2019-10-06 03:00:00', '07 mm'),
-        createData('2019-10-06 02:30:00', '10 mm'),
-        createData('2019-10-06 02:00:00', '00 mm'),
-        createData('2019-10-06 01:30:00', '01 mm'),
-        createData('2019-10-06 01:00:00', '00 mm'),
-    ];
-
+    
     return (
         <Fragment>
             <Container>
@@ -394,7 +390,7 @@ function RainfallPlot(props) {
                                                     </TableRow>
                                                 </TableHead>
                                                 <TableBody>
-                                                    {rows.map(row => (
+                                                    {instantaneousDt.map(row => (
                                                         <TableRow key={row.date_time}>
                                                             <TableCell component="th" scope="row">
                                                                 {row.date_time}

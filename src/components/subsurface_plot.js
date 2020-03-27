@@ -32,9 +32,9 @@ function makeRainbowColors(size) {
     if (rainbow.length !== size) {
         for (let i = 0; i < size; i += 1) {
             const obj = { index: i, size };
-            const red = sinToHex(obj, 2 * Math.PI * 2 / 3);
-            const blue = sinToHex(obj, 1 * Math.PI * 2 / 3);
-            const green = sinToHex(obj, 0 * Math.PI * 2 / 3);
+            const red = sinToHex(obj, 2 * Math.PI * 2 / 5);
+            const blue = sinToHex(obj, 1 * Math.PI * 2 / 4);
+            const green = sinToHex(obj, 0 * Math.PI * 2 / 5);
             rainbow[i] = `#${red}${green}${blue}`;
         }
         rainbow_colors = [...rainbow];
