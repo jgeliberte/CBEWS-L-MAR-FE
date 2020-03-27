@@ -2,10 +2,11 @@ import React, { Fragment, useState, useEffect } from "react";
 
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
-import { Fab, Container, Grid, Paper, makeStyles } from "@material-ui/core";
+import { Fab, Container, Grid, Paper, makeStyles, Typography } from "@material-ui/core";
 import moment from "moment";
 import { getSubsurfacePlotData } from "./sample_subsurface_data_not_final";
 import TransitionalModal from '../reducers/loading';
+import AppConfig from '../reducers/AppConfig';
 
 const useStyles = makeStyles(theme => ({
 
@@ -133,7 +134,6 @@ function prepareColumnPositionChartOption(set_data, input) {
     const { data, max_position, min_position, orientation } = set_data;
     const { subsurface_column } = input;
     const xAxisTitle = orientation === "across_slope" ? "Across Slope" : "Downslope";
-
     return {
         series: data,
         chart: {
@@ -207,7 +207,7 @@ function prepareDisplacementChartOption(set_data, form) {
     const { orientation, data, annotations } = set_data;
     const { subsurface_column, ts_end } = form;
     const xAxisTitle = orientation === "across_slope" ? "Across Slope" : "Downslope";
-
+    console.log('Displacement:', data)
     return {
         series: data,
         chart: {
@@ -277,7 +277,7 @@ function prepareVelocityAlertsOption(set_data, form) {
 
     const xAxisTitle = orientation === "across_slope" ? "Across Slope" : "Downslope";
     const category = data.map(x => x.name + 1);
-
+    console.log('Velocity:', data)
     return {
         series: data,
         chart: {
@@ -357,11 +357,58 @@ function SubsurfacePlot(props) {
     const input = { ts_end: timestamps.end, ts_start: timestamps.start, subsurface_column: tsm_sensor };
     const classes = useStyles();
     const [modal, setModal] = useState([<TransitionalModal status={false} />])
-    let processed_data = []
+    const [plotContainer, setPlotContainer] = useState([]);
+    const [plotAvailable, setPlotAvailable] = useState(false);
+    const [plot, setPlot] = useState([]);
 
-    // useEffect(()=> {
-    //     initSubsurface();
-    // },[])
+    useEffect(()=> {
+        initSubsurface()
+    },[])
+    
+    const initSubsurface = (site_code = 'mar') => {
+        fetch(`${AppConfig.HOSTNAME}/api/data_analysis/subsurface/plot/data/${site_code}`, {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            }
+        }).then((response) => response.json())
+            .then((responseJson) => {
+                let temp = [];
+                responseJson.data.forEach(element => {
+                    let processed_data = [];
+                    element.forEach(({ type, data }) => {
+                        let temp = [];
+                        if (feature === "data_analysis") {
+                            if (type === "column_position") temp = plotColumnPosition(data, type);
+                        } else {
+                            if (type === "displacement") temp = plotDisplacement(data, type);
+                            else if (type === "velocity_alerts") temp = plotVelocityAlerts(data, type);
+                        }
+                        processed_data.push(temp)
+                    });
+                    processed_data.forEach(data => {
+                        data.forEach(inner => {
+                            const { type } = inner;
+                            let option;
+                            if (feature === "data_analysis") {
+                                if (type === "column_position") option = prepareColumnPositionChartOption(inner, input);
+                            } else {
+                                if (type === "displacement") option = prepareDisplacementChartOption(inner, input);
+                                else if (type === "velocity_alerts") option = prepareVelocityAlertsOption(inner, input);
+                            }
+                            temp.push(option);
+                        });
+                    });
+                });
+                displayPlot(temp);
+            })
+            .catch((error) => {
+                console.log(error);
+            }
+        );
+    }
+    
     const downloadGraph = () => {
         setModal([<TransitionalModal status={true} />])
         setTimeout(() => {
@@ -378,51 +425,38 @@ function SubsurfacePlot(props) {
         }, 3000)
     }
 
-    getSubsurfacePlotData.forEach(({ type, data }) => {
-        let temp = [];
-        if (feature === "data_analysis") {
-            if (type === "column_position") temp = plotColumnPosition(data, type);
-        } else {
-            if (type === "displacement") temp = plotDisplacement(data, type);
-            else if (type === "velocity_alerts") temp = plotVelocityAlerts(data, type);
-        }
-        processed_data.push(temp)
-    });
-
-    let options = [];
-
-    processed_data.forEach(data => {
-        data.forEach(inner => {
-            const { type } = inner;
-            let option;
-            if (feature === "data_analysis") {
-                if (type === "column_position") option = prepareColumnPositionChartOption(inner, input);
-            } else {
-                if (type === "displacement") option = prepareDisplacementChartOption(inner, input);
-                else if (type === "velocity_alerts") option = prepareVelocityAlertsOption(inner, input);
-            }
-            options.push(option);
+    const displayPlot = (data) => {
+        let ret_val = []
+        let counter = 0;
+        data.forEach(options => {
+            ret_val.push(
+                <Grid item xs={12} md={6} key={counter++}>
+                    <Paper>
+                        <HighchartsReact
+                            highcharts={Highcharts}
+                            options={options}
+                        />
+                    </Paper>
+                </Grid>
+            );
         });
-    });
+        setPlot(ret_val);
+        setPlotAvailable(true);
+    }
 
     return (
         <Fragment>
             <Container>
                 <div style={{ marginTop: 16 }}>
                     <Grid container spacing={4}>
-                        {
-                            options.map((option, i) => {
-                                return (
-                                    <Grid item xs={12} md={6} key={i}>
-                                        <Paper>
-                                            <HighchartsReact
-                                                highcharts={Highcharts}
-                                                options={option}
-                                            />
-                                        </Paper>
-                                    </Grid>
-                                );
-                            })
+                        { plotAvailable ? plot : 
+                            <Grid item xs={12}>
+                                <Paper>
+                                    <Typography align='center'>
+                                            Loading subsurface graph
+                                    </Typography>
+                                </Paper>
+                            </Grid>
                         }
                         <Grid container align="center" style={{ paddingTop: 20 }}>
                             <Grid item xs={3} />

@@ -12,36 +12,49 @@ import moment from "moment";
 
 import RainfallPlot from './rainfall_plot';
 
-function get_charts (release_triggers) {
-    return release_triggers.map(trig => {
+function get_charts(release_triggers) {
+    let return_data = [];
+    if (release_triggers.length > 0) {
+        console.log("MERON release_triggers", release_triggers);
+        const chart_list = release_triggers.map(trig => {
 
-        const {trigger} = trig;
-        let chart_load;
+            const { trigger } = trig;
+            let chart_load;
 
-        if (trigger === "Rainfall") chart_load = (<Grid item xs={12}><RainfallPlot feature={"alert_validation"} /></Grid>)
-        else if (trigger === "Subsurface") chart_load = (<Grid item xs={12}>subsurface</Grid>)
-        else if (trigger === "Surficial") chart_load = (<Grid item xs={12}>surficial</Grid>)
-        else chart_load = null
+            if (trigger === "Rainfall") chart_load = (<Grid item xs={12}><RainfallPlot feature={"alert_validation"} /></Grid>)
+            else if (trigger === "Subsurface") chart_load = (<Grid item xs={12}>subsurface</Grid>)
+            else if (trigger === "Surficial") chart_load = (<Grid item xs={12}>surficial</Grid>)
+            else chart_load = null
 
-        return {
-            ...trig,
-            chart: chart_load
-        }
-    });
+            return {
+                ...trig,
+                chart: chart_load
+            }
+        });
+        return_data = chart_list;
+    } else {
+        return_data = release_triggers;
+    }
+
+    return return_data;
 }
 
 function AlertValidation() {
     const [public_alert, setPublicAlert] = useState("Loading...");
+    const [validity, setValidity] = useState("");
+    const [data_ts, setDataTs] = useState("");
+    const [as_of_ts, setAsOfTs] = useState("");
+    const [is_release_time, setIsReleaseTime] = useState(false);
     const [rows, setRow] = useState([]);
+    const [all_validated, setAllValidated] = useState(false);
 
-
-    // let rows = [
-    //     createData('2019-10-06 04:00:00', 'Rainfall', 'RAIN_UMIG', 'Exceeded threshold level'),
-    //     createData('2019-10-06 04:00:00', 'MoMs', 'Crack C', 'New crack near Crack C'),
-    // ];
 
     useEffect(() => {
         // GET CANDIDATE TRIGGER
+        updateAlertGen();
+    }, []);
+
+    const updateAlertGen = () => {
         fetch(`${AppConfig.HOSTNAME}/api/alert_gen/UI/get_mar_alert_validation_data`, {
             method: 'GET',
             headers: {
@@ -51,8 +64,24 @@ function AlertValidation() {
         }).then(response => response.json())
             .then(responseJson => {
                 console.log("responseJson", responseJson);
-                setPublicAlert(`Alert ${responseJson["public_alert_level"]}`);
-                return responseJson["release_triggers"];
+                const { public_alert_level, as_of_ts } = responseJson.data;
+                const as_of_ts_format = moment(responseJson["as_of_ts"]).format("H:mm A, D MMMM YYYY, dddd");
+                let rel_trig;
+                if (public_alert_level > 0) {
+                    const { validity: val, data_ts: dts, is_release_time: irt, release_triggers } = responseJson.data;
+                    console.log("release_triggers", release_triggers)
+                    setPublicAlert(`Alert ${public_alert_level}`);
+                    setAsOfTs(as_of_ts_format);
+                    setValidity(val);
+                    setDataTs(dts);
+                    setIsReleaseTime(irt);
+                    return release_triggers;
+                } else {
+                    setPublicAlert(`Alert ${public_alert_level}`);
+                    setAsOfTs(as_of_ts_format);
+                    rel_trig = [];
+                    return rel_trig;
+                }
             })
             .then(temp => get_charts(temp))
             .then(release_triggers => {
@@ -62,18 +91,51 @@ function AlertValidation() {
             .catch((error) => {
                 console.log(error);
             });
-    }, []);
-
-    function createData(date_time, trigger, data_source, description) {
-        return { date_time, trigger, data_source, description };
     }
 
-    function validateAlert(status) {
+    const validateAlert = (status, data) => {
+        // "#28a745"
+        // "#ee9d01"
+
+        // "#195770"
+        let alert_validity = 0;
+        let remark = "";
         if (status === true) {
-            alert("Alert valid!")
+            alert("Alert valid!");
+            alert_validity = 1;
+            remark = "valid trigger";
         } else {
-            alert("Alert invalid!")
+            alert("Alert invalid!");
+            alert_validity = -1;
+            remark = "invalid trigger";
         }
+        console.log("data", data);
+
+        const payload = {
+            trigger_id: data["trigger_id"],
+            alert_status: alert_validity,
+            remarks: remark,
+            user_id: 1,
+            ts_last_retrigger: data["date_time"]
+        };
+        console.log("payload", payload);
+
+        fetch(`${AppConfig.HOSTNAME}/api/alert_gen/public_alerts/validate_trigger`, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        }).then(response => response.json())
+            .then(responseJson => {
+                console.log("responseJson", responseJson);
+                // updateAlertGen();
+            })
+            .catch((error) => {
+                console.error(error);
+            }
+            );
     }
 
     const dt_classes = tableStyle();
@@ -86,9 +148,10 @@ function AlertValidation() {
                     <Grid item xs={12} container spacing={5} >
                         <Grid item={12}><Typography variant="h3">TRIGGER VALIDATION</Typography></Grid>
                     </Grid>
-                    
+
                     {/* TRIGGER TABLE  */}
                     {rows.map(row => {
+                        console.log("ROW", row);
 
                         return (
                             <Fragment>
@@ -117,7 +180,7 @@ function AlertValidation() {
                                     <Fab variant="extended"
                                         color="primary"
                                         aria-label="add" className={classes.button_fluid}
-                                        onClick={() => { validateAlert(true) }}>
+                                        onClick={() => { validateAlert(true, row) }}>
                                         Valid
                                     </Fab>
                                 </Grid>
@@ -125,7 +188,7 @@ function AlertValidation() {
                                     <Fab variant="extended"
                                         color="primary"
                                         aria-label="add" className={classes.button_fluid}
-                                        onClick={() => { validateAlert(false) }}>
+                                        onClick={() => { validateAlert(false, row) }}>
                                         Invalid
                                     </Fab>
                                 </Grid>
@@ -136,19 +199,40 @@ function AlertValidation() {
                         )
                     })}
                     <Grid item xs={12}>
+                        <Typography variant="h5" className={[classes.label_paddings]}>
+                            As of {as_of_ts}
+                        </Typography>
                         <Typography variant="h2" className={[classes.label_paddings, classes.alert_level]}>
                             {public_alert}
                         </Typography>
+                        {
+                            public_alert !== "Alert 0" && (
+                                <Fragment>
+                                    <Typography variant="h5" className={[classes.label_paddings]}>
+                                        Validity: {validity}
+                                    </Typography>
+                                    <Typography variant="h5" className={[classes.label_paddings]}>
+                                        Data Timestamp: {data_ts}
+                                    </Typography>
+                                </Fragment>
+                            )
+                        }
                     </Grid>
 
-                    <Grid item xs={12}>
-                        <Fab variant="extended"
-                            color="primary"
-                            aria-label="add" className={classes.button_fluid}
-                            onClick={() => console.log("RELEASED")}>
-                            Release Alert
-                        </Fab>
-                    </Grid>
+                    {
+                        public_alert !== "Alert 0" && (
+                            <Grid item xs={12}>
+                                <Fab variant="extended"
+                                    color="primary"
+                                    aria-label="add" className={classes.button_fluid}
+                                    onClick={() => console.log("RELEASED")}
+                                    disabled={!all_validated}
+                                    >
+                                    Release Alert
+                                </Fab>
+                            </Grid>
+                        )
+                    }
 
                 </Grid>
             </Container>
