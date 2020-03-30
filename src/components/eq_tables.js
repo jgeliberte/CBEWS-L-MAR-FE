@@ -16,16 +16,16 @@ function EarthquakeTables() {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [pageEnd, setPageEnd] = useState(0);
-    const createData = (date_time, depth, magnitude, latitude, longitude, criticial_distance ) =>  {
-        return { date_time, depth, magnitude, latitude, longitude, criticial_distance };
+    const createData = (date_time, depth, magnitude, latitude, longitude, distance, site ) =>  {
+        return { date_time, depth, magnitude, latitude, longitude, distance, site };
     }
 
     useEffect(()=> {
         initEqTables();
     },[]);
 
-    const initEqTables = () => {
-        fetch(`${AppConfig.HOSTNAME}/api/sensor_data/earthquake/`, {
+    const initEqTables = (limit = 100) => {
+        fetch(`${AppConfig.HOSTNAME}/api/sensor_data/earthquake/${limit}`, {
             method: 'GET',
             headers: {
                 Accept: 'application/json',
@@ -41,11 +41,12 @@ function EarthquakeTables() {
                         element.mag,
                         element.lon,
                         element.lat,
-                        parseFloat(element.criticial_distance)
+                        parseFloat(element.distance),
+                        element.site
                     ))
                 });
                 setEqData(temp);
-                setEqDisplay(temp.slice(10))
+                setEqDisplay(temp);
                 setEqAvailable(true);
             })
             .catch((error) => {
@@ -58,6 +59,8 @@ function EarthquakeTables() {
     const classes = useStyles();
 
     const handleChangePage = (event, newPage) => {
+        console.log("Event value:", event.target.value)
+        console.log("New page:", newPage)
         setPage(newPage);
       };
     
@@ -65,6 +68,7 @@ function EarthquakeTables() {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
       };
+
     return (
         <Fragment>
             <Container fixed>
@@ -80,6 +84,7 @@ function EarthquakeTables() {
                                     <TableCell>Longitude</TableCell>
                                     <TableCell>Latitude</TableCell>
                                     <TableCell>Critical Distance</TableCell>
+                                    <TableCell>Site(s) affected</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -92,7 +97,8 @@ function EarthquakeTables() {
                                         <TableCell>{row.magnitude}</TableCell>
                                         <TableCell>{row.latitude}</TableCell>
                                         <TableCell>{row.longitude}</TableCell>
-                                        <TableCell>{row.criticial_distance}</TableCell>
+                                        <TableCell>{row.distance}</TableCell>
+                                        <TableCell>{row.site}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
