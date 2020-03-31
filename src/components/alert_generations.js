@@ -5,20 +5,21 @@ import { useStyles } from '../styles/general_styles';
 
 function AlertGeneration() {
 
-    const [feature, setFeature] = useState(<LatestCurrentAlert />);
-    const [av, avActive] = useState("");
-    const [lca, lcaActive] = useState("primary");
+    // const [feature, setFeature] = useState(<LatestCurrentAlert />);
+    const [feature, setFeature] = useState(<AlertValidation />);
+    const [av, avActive] = useState("primary");
+    const [lca, lcaActive] = useState("");
 
     function handleFeatureNav(feature) {
         let return_feat = []
         switch (feature) {
             case "alert_validation":
-                lcaActive("")
+                lcaActive("");
                 avActive("primary");
                 return_feat = <AlertValidation />
                 break;
             case "latest_current_alert":
-                lcaActive("primary")
+                lcaActive("primary");
                 avActive("");
                 return_feat = <LatestCurrentAlert />
                 break;
@@ -38,16 +39,7 @@ function AlertGeneration() {
                 <Grid container alignItems="center" justify="center">
                     <Grid item xs={3} >
                         <Grid container direction="column" className={classes.menuContainer}>
-                            <Grid item={true} xs={3} style={{ marginTop: '30%' }} />
-                            <Grid item={true} xs={12} style={{ marginTop: '25%' }}>
-                                <Fab variant="extended"
-                                    color={lca}
-                                    aria-label="add"
-                                    className={classes.menu}
-                                    onClick={() => { handleFeatureNav("latest_current_alert") }}>
-                                    Latest Current Alert
-                                </Fab>
-                            </Grid>
+                            {/* <Grid item={true} xs={3} style={{ marginTop: '30%' }} /> */}
                             <Grid item={true} xs={12} style={{ marginTop: '25%' }}>
                                 <Fab variant="extended"
                                     color={av}
@@ -57,7 +49,16 @@ function AlertGeneration() {
                                     Alert Validation
                                 </Fab>
                             </Grid>
-                            <Grid item={true} xs={3} style={{ marginTop: '30%' }} />
+                            <Grid item={true} xs={12} style={{ marginTop: '25%' }}>
+                                <Fab variant="extended"
+                                    color={lca}
+                                    aria-label="add"
+                                    className={classes.menu}
+                                    onClick={() => { handleFeatureNav("latest_current_alert") }}>
+                                    Latest Current Alert
+                                </Fab>
+                            </Grid>
+                            {/* <Grid item={true} xs={3} style={{ marginTop: '30%' }} /> */}
                         </Grid>
                     </Grid>
                     <Grid item xs={9} >
