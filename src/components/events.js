@@ -1,32 +1,50 @@
-import React, { Fragment, useState } from 'react';
+import React, { Fragment, useState, useEffect } from 'react';
 import {
     Grid, Container,
     Fab, Typography, TextField, MenuItem
 } from "@material-ui/core";
 import { useStyles } from '../styles/general_styles';
+import AppConfig from '../reducers/AppConfig';
 
-export default function Events() {
+function Events() {
     const [template_key, setKey] = useState('gndmeas');
     const [textArea, setTextArea] = useState([]);
+    const [templates, setTemplates] = useState([]);
     const classes = useStyles();
-    const templates = [
-        {
-            value: 'gndmeas',
-            label: 'Ground measurement reminder'
-        },
-        {
-            value: 'ewi',
-            label: 'Early Warning Information'
-        },
-        {
-            value: 'rmm',
-            label: 'Routine Monitoring Message'
-        },
-        {
-            value: 'emm',
-            label: 'Extended Monitoring Message'
-        }
-    ]
+
+    useEffect(()=> {
+        initTemplates();
+    },[]);
+
+    const initTemplates = (site_code = "mar") => { 
+        // Leave site code for now, in preparation for umi / mar merge
+        let template_container = [];
+        fetch(`${AppConfig.HOSTNAME}/api/events/template/fetch/all`, {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            }
+        }).then((response) => response.json())
+            .then((responseJson) => {
+                responseJson.data.forEach(element => {
+                    console.log(element);
+                    template_container.push({
+                        "ewi_id": element[0],
+                        "tag": element[1],
+                        "template": element[2],
+                        "ts_modified": element[3],
+                        "modified_by": element[4]
+                    })
+                });
+                console.log(template_container);
+                setTemplates(template_container);
+            })
+            .catch((error) => {
+                console.log(error);
+            }
+        );
+    }
 
     const handleChange = key_template => event => {
         console.log(event.target.value)
@@ -90,11 +108,7 @@ export default function Events() {
                             helperText="E.g. Ground Measurement Reminder"
                             margin="normal"
                         >
-                            {templates.map(option => (
-                                <MenuItem key={option.value} value={option.value}>
-                                    {option.label}
-                                </MenuItem>
-                            ))}
+
                         </TextField>
                         <Grid item xs={4} />
                         <Grid item xs={12}>
@@ -106,3 +120,11 @@ export default function Events() {
         </Fragment>
     )
 }
+
+// {templates.map(option => (
+//     <MenuItem key={option.value} value={option.value}>
+//         {option.label}
+//     </MenuItem>
+// ))}
+
+export default Events
