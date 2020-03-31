@@ -12,33 +12,6 @@ import moment from "moment";
 
 import RainfallPlot from './rainfall_plot';
 
-function get_charts(release_triggers) {
-    let return_data = [];
-    if (release_triggers.length > 0) {
-        console.log("MERON release_triggers", release_triggers);
-        const chart_list = release_triggers.map(trig => {
-
-            const { trigger } = trig;
-            let chart_load;
-
-            if (trigger === "Rainfall") chart_load = (<Grid item xs={12}><RainfallPlot feature={"alert_validation"} /></Grid>)
-            else if (trigger === "Subsurface") chart_load = (<Grid item xs={12}>subsurface</Grid>)
-            else if (trigger === "Surficial") chart_load = (<Grid item xs={12}>surficial</Grid>)
-            else chart_load = null
-
-            return {
-                ...trig,
-                chart: chart_load
-            }
-        });
-        return_data = chart_list;
-    } else {
-        return_data = release_triggers;
-    }
-
-    return return_data;
-}
-
 function AlertValidation() {
     const [public_alert, setPublicAlert] = useState("Loading...");
     const [validity, setValidity] = useState("");
@@ -53,6 +26,36 @@ function AlertValidation() {
         // GET CANDIDATE TRIGGER
         updateAlertGen();
     }, []);
+    
+    const get_charts = (release_triggers) => {
+        let return_data = [];
+        if (release_triggers.length > 0) {
+            console.log("MERON release_triggers", release_triggers);
+            const chart_list = release_triggers.map(trig => {
+    
+                const { trigger } = trig;
+                let chart_load;
+    
+                if (trigger === "Rainfall") chart_load = (<Grid item xs={12}><RainfallPlot feature={"alert_validation"} /></Grid>)
+                else if (trigger === "Subsurface") chart_load = (<Grid item xs={12}>subsurface</Grid>)
+                else if (trigger === "Surficial") chart_load = (<Grid item xs={12}>surficial</Grid>)
+                else if (trigger === "Moms") chart_load = (
+                    <Grid item xs={12}>surficial</Grid>
+                    )
+                else chart_load = null
+    
+                return {
+                    ...trig,
+                    chart: chart_load
+                }
+            });
+            return_data = chart_list;
+        } else {
+            return_data = release_triggers;
+        }
+    
+        return return_data;
+    };
 
     const updateAlertGen = () => {
         fetch(`${AppConfig.HOSTNAME}/api/alert_gen/UI/get_mar_alert_validation_data`, {
@@ -69,15 +72,24 @@ function AlertValidation() {
                 let rel_trig;
                 if (public_alert_level > 0) {
                     const { validity: val, data_ts: dts, is_release_time: irt, release_triggers } = responseJson.data;
-                    console.log("release_triggers", release_triggers)
-                    setPublicAlert(`Alert ${public_alert_level}`);
+                    console.log("release_triggers", release_triggers);
+                    const color = public_alert_level === 3 ? "red" : "#ee9d01";
+                    setPublicAlert((
+                        <Typography variant="h2" color={color} className={[classes.label_paddings, classes.alert_level]}>
+                            {`Alert ${public_alert_level}`}
+                        </Typography>
+                    ));
                     setAsOfTs(as_of_ts_format);
                     setValidity(val);
                     setDataTs(dts);
                     setIsReleaseTime(irt);
                     return release_triggers;
                 } else {
-                    setPublicAlert(`Alert ${public_alert_level}`);
+                    setPublicAlert((
+                        <Typography variant="h2" color="#28a745" className={[classes.label_paddings, classes.alert_level]}>
+                            {`Alert ${public_alert_level}`}
+                        </Typography>
+                    ));
                     setAsOfTs(as_of_ts_format);
                     rel_trig = [];
                     return rel_trig;
@@ -202,9 +214,7 @@ function AlertValidation() {
                         <Typography variant="h5" className={[classes.label_paddings]}>
                             As of {as_of_ts}
                         </Typography>
-                        <Typography variant="h2" className={[classes.label_paddings, classes.alert_level]}>
-                            {public_alert}
-                        </Typography>
+                        {public_alert}
                         {
                             public_alert !== "Alert 0" && (
                                 <Fragment>
