@@ -5,16 +5,33 @@ import {
 } from "@material-ui/core";
 import { useStyles } from '../styles/general_styles';
 import AppConfig from '../reducers/AppConfig';
+import moment from 'moment';
 
 function Events() {
-    const [template_key, setKey] = useState('gndmeas');
+    const [template_key, setKey] = useState('');
     const [textArea, setTextArea] = useState([]);
     const [templates, setTemplates] = useState([]);
+
+    const [ewiID, setEwiId] = useState('');
+    const [tag, setTag] = useState('');
+    const [templateMessage, setTemplateMessage] = useState('');
+    const [modifiedBy, setModifiedBy] = useState('');
+
+    const [isNew, setIsNew] = useState(false);
+    const [newTemplate, setNewTemplate] = useState([]);
+
     const classes = useStyles();
+    const newTagOption = {
+        'ewi_id': 0,
+        'tag': '----NEW TEMPLATE----',
+        'template': '',
+        'ts_modified': '',
+        'modified_by': ''
+    }
 
     useEffect(()=> {
         initTemplates();
-    },[]);
+    },[ewiID]);
 
     const initTemplates = (site_code = "mar") => { 
         // Leave site code for now, in preparation for umi / mar merge
@@ -28,7 +45,6 @@ function Events() {
         }).then((response) => response.json())
             .then((responseJson) => {
                 responseJson.data.forEach(element => {
-                    console.log(element);
                     template_container.push({
                         "ewi_id": element[0],
                         "tag": element[1],
@@ -37,7 +53,7 @@ function Events() {
                         "modified_by": element[4]
                     })
                 });
-                console.log(template_container);
+                template_container.push(newTagOption);
                 setTemplates(template_container);
             })
             .catch((error) => {
@@ -46,40 +62,81 @@ function Events() {
         );
     }
 
+    const modifyTemplate = () => {
+        let req_url = '';
+        let method = '';
+        if (isNew == true) {
+            req_url = `${AppConfig.HOSTNAME}/api/events/template/add`;
+            method = 'POST';
+        } else {
+            req_url = `${AppConfig.HOSTNAME}/api/events/template/update`;   
+            method = 'PATCH';
+        }
+        // Leave modified_by: 1 for testing 
+        fetch(req_url, {
+            method: method,
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "ewi_id": ewiID,
+                "tag": tag,
+                "template": templateMessage,
+                "modified_by": 1
+            }),
+        }).then((response) => response.json())
+            .then((responseJson) => {
+                if (responseJson.status == true) {
+                    initTemplates();
+                } else {
+                    console.log("ERROR");
+                }
+            })
+            .catch((error) => {
+                console.error(error);
+            }
+        );
+    }
+
+    const resetStates = () => {
+        setEwiId('');
+        setTag('');
+        setTemplateMessage('');
+        setModifiedBy('');
+    }
+
     const handleChange = key_template => event => {
-        console.log(event.target.value)
+        resetStates();
         setKey(event.target.value);
-        setTextArea(
-            <Fragment>
-                <Grid container align="center">
+        let obj = templates.find(o => o.tag === event.target.value);
+        let {ewi_id, tag, template, ts_modified, modified_by} = obj;
+        let new_template_tag = [];
+        
+        if (ewi_id == 0) {
+            setNewTemplate(
+                <Grid container align="center" spacing={4} style={{paddingBottom: 10, paddingTop: 10}}>
                     <Grid item xs={12}>
                         <TextField
-                            label="Template"
+                            label="New template tag"
                             multiline={true}
-                            rows={5}
+                            onChange={(event)=> { setTag(event.target.value) }}
                             fullWidth
-                            rowsMax={10}
+                            helperText="E.g. Meeting Invitation"
                         />
                     </Grid>
-                    <Grid item xs={12} style={{marginTop: '10%'}}>
-                        <Grid container>
-                            <Grid item xs={4} />
-                            <Grid item xs={4}>
-                                <Fab variant="extended"
-                                    color={"primary"}
-                                    aria-label="add"
-                                    className={classes.menu}
-                                    onClick={()=>{}}>
-                                    Save
-                                </Fab>
-                            </Grid>
-                            <Grid item xs={4} />
-                        </Grid>
-                    </Grid>
                 </Grid>
-            </Fragment>
+            )
+            setIsNew(true);
+        } else {
+            setNewTemplate([]);
+            setIsNew(false);
+        }
 
-        )
+        setEwiId(ewi_id)
+        setTag(tag)
+        setTemplateMessage(template)
+        setModifiedBy(modified_by)
     };
 
     return (
@@ -94,7 +151,7 @@ function Events() {
                     <Grid item xs={4} />
                     <Grid item xs={4}>
                         <TextField
-                            id="standard-select-currency"
+                            id="ewi_template_id"
                             select
                             label="Message Template"
                             className={classes.textField}
@@ -106,13 +163,55 @@ function Events() {
                                 },
                             }}
                             helperText="E.g. Ground Measurement Reminder"
-                            margin="normal"
                         >
-
+                        {templates.map(option => (
+                            <MenuItem key={option.tag} value={option.tag}>
+                                {option.tag}
+                            </MenuItem>
+                        ))}
                         </TextField>
                         <Grid item xs={4} />
                         <Grid item xs={12}>
-                            {textArea}
+                            {newTemplate}
+                            <Grid container align="center">
+                                <Grid item xs={12}>
+                                    <TextField
+                                        label="Template"
+                                        multiline={true}
+                                        onChange={(event)=> { setTemplateMessage(event.target.value)}}
+                                        rows={5}
+                                        fullWidth
+                                        rowsMax={10}
+                                        value={templateMessage}
+                                    />
+                                </Grid>
+                            </Grid>
+                            <Grid container>
+                                <Grid item xs={12} style={{marginTop: '10%'}}>
+                                    <Grid container spacing={2}>
+                                        <Grid item xs={3} />
+                                        <Grid item xs={3}>
+                                            <Fab variant="extended"
+                                                color={"primary"}
+                                                aria-label="add"
+                                                className={classes.menu}
+                                                onClick={()=>{modifyTemplate()}}>
+                                                { isNew ? "Add" : "Save"}
+                                            </Fab>
+                                        </Grid>
+                                        <Grid item xs={3}>
+                                            <Fab variant="extended"
+                                                color={"primary"}
+                                                aria-label="add"
+                                                className={classes.menu}
+                                                onClick={()=>{}}>
+                                                Reset
+                                            </Fab>
+                                        </Grid>
+                                        <Grid item xs={3} />
+                                    </Grid>
+                                </Grid>
+                            </Grid>
                         </Grid>
                     </Grid>
                 </Grid>
@@ -120,11 +219,5 @@ function Events() {
         </Fragment>
     )
 }
-
-// {templates.map(option => (
-//     <MenuItem key={option.value} value={option.value}>
-//         {option.label}
-//     </MenuItem>
-// ))}
 
 export default Events
