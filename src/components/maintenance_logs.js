@@ -4,6 +4,8 @@ import {
     TableBody, TableCell, TableHead, TableRow, TextField,
     Button, Typography
 } from '@material-ui/core';
+import DeleteIcon from '@material-ui/icons/Delete';
+import EditIcon from '@material-ui/icons/Edit';
 import { makeStyles } from '@material-ui/core/styles';
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
@@ -75,6 +77,15 @@ function getWindowDimensions() {
     };
 }
 
+const defaultVars = {
+    maintenance_ts: moment().format("YYYY-MM-DD hh:mm:ss"),
+    maintenance_type: "",
+    remarks: "",
+    in_charge: "",
+    updater: "",
+    site_id: AppConfig.CONFIG.site_id
+};
+
 
 function MaintenanceLogs() {
     const img = imageStyle();
@@ -83,20 +94,12 @@ function MaintenanceLogs() {
     const dt_classes = tableStyle();
 
     const [flag, setFlag] = useState(true);
+    const [range_start, setRangeStart] = useState("");
+    const [range_end, setRangeEnd] = useState("");
     const [rows, setRows] = useState([]);
     const [events, setEvents] = useState([]);
-    // const [dialog_vars, setDialogVars] = useState({
-    //     maintenance_ts: "",
-    //     maintenance_type: "",
-    //     remarks: "",
-    //     in_charge: "",
-    //     updater: ""
-    // });
-    const [ts_input, setTSInput] = useState(moment());
-
-    useState(() => {
-        console.log("cause rerender");
-    }, [flag]);
+    const [dialog_vars, setDialogVars] = useState(defaultVars);
+    const [toUpdate, setToUpdate] = useState(false);
 
     function getMaintenanceLogsPerDay(day) {
         fetch(`${AppConfig.HOSTNAME}/api/maintenance/maintenance_logs/fetch`, {
@@ -115,11 +118,12 @@ function MaintenanceLogs() {
         }).then(response => response.json()
         ).then(response => {
             if (response.ok) setRows(response.data);
-            else console.error("Problem in getMaintenanceLogsPerDay backend");
         }).catch(error => console.error(error));
     }
 
     function getMaintenanceLogsPerMonth(start, end) {
+        setRangeStart(start);
+        setRangeEnd(end);
         fetch(`${AppConfig.HOSTNAME}/api/maintenance/maintenance_logs/fetch`, {
             method: 'POST',
             headers: {
@@ -154,52 +158,121 @@ function MaintenanceLogs() {
         }).then(response => response.json()
         ).then(response => {
             if (response.ok) {
-                setFlag(!flag);
+                getMaintenanceLogsPerMonth(range_start, range_end);
+                getMaintenanceLogsPerDay(payload.maintenance_ts)
                 handleClose();
             }
             else console.error("Problem in addMaintenanceLog backend");
+            alert(response.message);
         }).catch(error => console.error(error));
     }
 
-    const [open, setOpen] = React.useState(false);
+    function updateMaintenanceLog(temp_payload) {
+        const payload = {
+            ...temp_payload,
+            site_id: AppConfig.CONFIG.site_id
+        }
+        fetch(`${AppConfig.HOSTNAME}/api/maintenance/maintenance_logs/update`, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        }).then(response => response.json()
+        ).then(response => {
+            if (response.ok) {
+                getMaintenanceLogsPerMonth(range_start, range_end);
+                getMaintenanceLogsPerDay(temp_payload.maintenance_ts);
+                handleClose();
+            }
+            else console.error("Problem in updateMaintenanceLog backend");
+            alert(response.message);
+        }).catch(error => console.error(error));
+    }
+
+    function deleteMaintenanceLog(payload) {
+        const site_id = AppConfig.CONFIG.site_id;
+        fetch(`${AppConfig.HOSTNAME}/api/maintenance/maintenance_logs/remove/${site_id}/${payload.maintenance_log_id}`, {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            }
+        }).then(response => response.json()
+        ).then(response => {
+            if (response.ok) {
+                getMaintenanceLogsPerMonth(range_start, range_end);
+                getMaintenanceLogsPerDay(payload.maintenance_ts);
+                handleConfirmClose();
+            }
+            else console.error("Problem in deleteMaintenanceLog backend");
+            alert(response.message);
+        }).catch(error => console.error(error));
+    }
+    const [open, setOpen] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
 
     const handleClickOpen = () => {
+        setDialogVars(defaultVars);
+        setToUpdate(false);
         setOpen(true);
     };
 
     const handleClose = () => {
+        setDialogVars(defaultVars);
+        setToUpdate(false);
         setOpen(false);
     };
 
+    const handleConfirmClose = () => {
+        setDialogVars(defaultVars);
+        setConfirmOpen(false);
+        setToUpdate(false);
+    };
+
     const dateClickHandler = args => {
-        console.log("args", args);
         getMaintenanceLogsPerDay(args.date);
     };
 
     const calendarRenderHandler = args => {
-        console.log("args", args);
         const { dates } = args.view.dayTable.daySeries;
         const length = dates.length
         getMaintenanceLogsPerMonth(dates[0], dates[length - 1]);
     };
 
     const handleSubmit = () => {
-        console.log("CLICKED SUBMIT!", tsRef);
-        const payload = {
-            "maintenance_ts": moment(ts_input).format("YYYY-MM-DD hh:mm:ss"),
-            "maintenance_type": typeRef.current.children[0].control.value,
-            "remarks": remarksRef.current.children[0].control.value,
-            "in_charge": inChargeRef.current.children[0].control.value,
-            "updater": updaterRef.current.children[0].control.value,
-            "site_id": AppConfig.CONFIG.site_id
-        };
-        addMaintenanceLog(payload);
+        const payload = dialog_vars;
+        if (toUpdate) updateMaintenanceLog(payload);
+        else addMaintenanceLog(payload);
+    };
+
+    const handleDelete = () => {
+        const payload = dialog_vars;
+        deleteMaintenanceLog(payload);
     };
 
     const dateHandler = data => {
-        setTSInput(moment(data).format("YYYY-MM-DD hh:mm:ss"));
-        console.log(data);
-    }
+        setDialogVars({
+            ...dialog_vars,
+            maintenance_ts: moment(data).format("YYYY-MM-DD hh:mm:ss")
+        });
+    };
+
+    const changeHandler = key => event => {
+        const { value } = event.target;
+        setDialogVars({
+            ...dialog_vars,
+            [key]: value
+        });
+    };
+
+    const rowClickHandler = (key, data) => () => {
+        setToUpdate(true);
+        setDialogVars(data);
+        if (key === "edit") setOpen(true);
+        else setConfirmOpen(true);
+    };
 
     return (
         <Fragment>
@@ -261,6 +334,7 @@ function MaintenanceLogs() {
                                     <Table className={dt_classes.table}>
                                         <TableHead>
                                             <TableRow>
+                                                <TableCell>Actions</TableCell>
                                                 <TableCell>Date and time</TableCell>
                                                 <TableCell>Type of maintenance</TableCell>
                                                 <TableCell>Remarks</TableCell>
@@ -271,6 +345,16 @@ function MaintenanceLogs() {
                                         <TableBody>
                                             {rows.map(row => (
                                                 <TableRow key={row.date_time}>
+                                                    <TableCell>
+                                                        <Button onClick={rowClickHandler("edit", row)} color="primary">
+                                                            {/* Edit */}
+                                                            <EditIcon />
+                                                        </Button>
+                                                        <Button onClick={rowClickHandler("delete", row)} color="primary">
+                                                            {/* Delete */}
+                                                            <DeleteIcon />
+                                                        </Button>
+                                                    </TableCell>
                                                     <TableCell component="th" scope="row">
                                                         {row.maintenance_ts}
                                                     </TableCell>
@@ -320,7 +404,7 @@ function MaintenanceLogs() {
                                 'aria-label': 'change date',
                             }}
                             fullWidth
-                            value={ts_input}
+                            value={dialog_vars.maintenance_ts}
                             onChange={dateHandler}
                         />
                     </MuiPickersUtilsProvider>
@@ -332,6 +416,8 @@ function MaintenanceLogs() {
                         label="Type of maintenance"
                         type="email"
                         fullWidth
+                        value={dialog_vars.maintenance_type}
+                        onChange={changeHandler("maintenance_type")}
                     />
                     <TextField
                         ref={remarksRef}
@@ -341,6 +427,8 @@ function MaintenanceLogs() {
                         label="Remarks"
                         type="email"
                         fullWidth
+                        value={dialog_vars.remarks}
+                        onChange={changeHandler("remarks")}
                     />
                     <TextField
                         ref={inChargeRef}
@@ -350,6 +438,8 @@ function MaintenanceLogs() {
                         label="In-charge"
                         type="email"
                         fullWidth
+                        value={dialog_vars.in_charge}
+                        onChange={changeHandler("in_charge")}
                     />
                     <TextField
                         ref={updaterRef}
@@ -359,21 +449,40 @@ function MaintenanceLogs() {
                         label="Updater"
                         type="email"
                         fullWidth
+                        value={dialog_vars.updater}
+                        onChange={changeHandler("updater")}
                     />
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleClose} color="primary">
                         Cancel
-            </Button>
+                    </Button>
                     <Button onClick={handleSubmit} color="primary">
-                        Confirm
-            </Button>
+                        {
+                            toUpdate ? "Update Log" : "Add Log"
+                        }
+                    </Button>
                 </DialogActions>
             </Dialog>
 
+            <Dialog open={confirmOpen} onClose={handleConfirmClose} aria-labelledby="form-dialog-title">
+                <DialogTitle id="form-dialog-title">Maintenance Log</DialogTitle>
+                <DialogContent>
+                    <Typography>Do you want to delete this log?</Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleConfirmClose} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleDelete} color="primary">
+                        Confirm Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
         </Fragment>
     )
 }
+
 
 export default MaintenanceLogs
