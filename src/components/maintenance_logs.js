@@ -1,8 +1,9 @@
 import React, { Fragment, useEffect, useState } from 'react'
+import CustomGridList from '../reducers/grid_list'
 import {
     Container, Grid, Fab, Paper, Table,
     TableBody, TableCell, TableHead, TableRow, TextField,
-    Button, Typography
+    Button, Typography, Input
 } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
@@ -25,13 +26,6 @@ import {
 import MomentUtils from '@date-io/moment';
 import moment from "moment";
 import AppConfig from "../reducers/AppConfig";
-
-const calendarRef = React.createRef();
-const tsRef = React.createRef();
-const typeRef = React.createRef();
-const remarksRef = React.createRef();
-const inChargeRef = React.createRef();
-const updaterRef = React.createRef();
 
 
 const imageStyle = makeStyles(theme => ({
@@ -93,13 +87,18 @@ function MaintenanceLogs() {
     const classes = generalStyle();
     const dt_classes = tableStyle();
 
-    const [flag, setFlag] = useState(true);
     const [range_start, setRangeStart] = useState("");
     const [range_end, setRangeEnd] = useState("");
     const [rows, setRows] = useState([]);
     const [events, setEvents] = useState([]);
     const [dialog_vars, setDialogVars] = useState(defaultVars);
     const [toUpdate, setToUpdate] = useState(false);
+    const [open, setOpen] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [uploadOpen, setUploadOpen] = useState(false);
+
+    const [file_to_upload, setFileToUpload] = useState(null);
+    const [filename, setFilename] = useState("");
 
     function getMaintenanceLogsPerDay(day) {
         fetch(`${AppConfig.HOSTNAME}/api/maintenance/maintenance_logs/fetch`, {
@@ -210,8 +209,6 @@ function MaintenanceLogs() {
             alert(response.message);
         }).catch(error => console.error(error));
     }
-    const [open, setOpen] = useState(false);
-    const [confirmOpen, setConfirmOpen] = useState(false);
 
     const handleClickOpen = () => {
         setDialogVars(defaultVars);
@@ -229,6 +226,14 @@ function MaintenanceLogs() {
         setDialogVars(defaultVars);
         setConfirmOpen(false);
         setToUpdate(false);
+    };
+
+    const handleUploadOpen = () => {
+        setUploadOpen(true);
+    };
+
+    const handleUploadClose = () => {
+        setUploadOpen(false);
     };
 
     const dateClickHandler = args => {
@@ -267,6 +272,29 @@ function MaintenanceLogs() {
         });
     };
 
+    const handleFileSelection = event => {
+        const file = event.target.files[0];
+        setFileToUpload(file);
+        setFilename(file.name);
+    };
+
+    const handleClickUpload = () => {
+        const data = new FormData();
+        data.append("file", file_to_upload);
+
+        fetch(`${AppConfig.HOSTNAME}/api/maintenance/maintenance_logs/upload_log_attachment`, {
+            method: 'POST',
+            body: data,
+        }).then((response) => {
+            if (response.ok) {
+                handleUploadClose();
+                setFileToUpload(null);
+                setFilename("");
+            }
+        })
+        .catch(error => console.error(error));
+    };
+
     const rowClickHandler = (key, data) => () => {
         setToUpdate(true);
         setDialogVars(data);
@@ -280,7 +308,6 @@ function MaintenanceLogs() {
                 <Grid container spacing={2}>
                     <Grid item xs={6}>
                         <FullCalendar
-                            ref={calendarRef}
                             datesRender={calendarRenderHandler}
                             dateClick={dateClickHandler}
                             events={events}
@@ -392,7 +419,7 @@ function MaintenanceLogs() {
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
                 <DialogTitle id="form-dialog-title">Maintenance Log</DialogTitle>
                 <DialogContent>
-                    <MuiPickersUtilsProvider ref={tsRef} utils={MomentUtils}>
+                    <MuiPickersUtilsProvider utils={MomentUtils}>
                         <KeyboardDatePicker
                             disableToolbar
                             variant="inline"
@@ -409,7 +436,6 @@ function MaintenanceLogs() {
                         />
                     </MuiPickersUtilsProvider>
                     <TextField
-                        ref={typeRef}
                         autoFocus
                         margin="dense"
                         id="maintenance_type"
@@ -420,7 +446,6 @@ function MaintenanceLogs() {
                         onChange={changeHandler("maintenance_type")}
                     />
                     <TextField
-                        ref={remarksRef}
                         autoFocus
                         margin="dense"
                         id="remarks"
@@ -431,7 +456,6 @@ function MaintenanceLogs() {
                         onChange={changeHandler("remarks")}
                     />
                     <TextField
-                        ref={inChargeRef}
                         autoFocus
                         margin="dense"
                         id="in_charge"
@@ -442,7 +466,6 @@ function MaintenanceLogs() {
                         onChange={changeHandler("in_charge")}
                     />
                     <TextField
-                        ref={updaterRef}
                         autoFocus
                         margin="dense"
                         id="updater"
@@ -452,6 +475,27 @@ function MaintenanceLogs() {
                         value={dialog_vars.updater}
                         onChange={changeHandler("updater")}
                     />
+                    {
+                        toUpdate ? (
+                            <Fragment>
+                                <CustomGridList 
+                                    data={[]}
+                                    type="cra_list"
+                                    // handleDownload={Helpers.downloadBlob}
+                                    handleDownload={handleDelete}
+                                    handleDelete={handleDelete}
+                                />
+                                <Fab variant="extended"
+                                    color={"primary"}
+                                    aria-label="add"
+                                    onClick={handleUploadOpen}>
+                                    Upload Attachments
+                                </Fab>  
+                            </Fragment>
+                        ) : (
+                            <Typography>You can attach files after saving the log.</Typography>
+                        )
+                    }
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleClose} color="primary">
@@ -476,6 +520,42 @@ function MaintenanceLogs() {
                     </Button>
                     <Button onClick={handleDelete} color="primary">
                         Confirm Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog open={uploadOpen} onClose={handleUploadClose} aria-labelledby="form-dialog-title">
+                <DialogTitle id="form-dialog-title">File upload</DialogTitle>
+                <DialogContent>
+                    <Grid container>
+                        <Grid item xs={8}>
+                            <TextField
+                                autoFocus
+                                margin="dense"
+                                id="name"
+                                label="File path"
+                                type="email"
+                                fullWidth
+                                value={filename}
+                            />
+                        </Grid>
+                        <Grid item xs={2}>
+                            <Input
+                                name="file"
+                                type="file"
+                                onChange={handleFileSelection}
+                            />
+                        </Grid>
+                    </Grid>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleUploadClose} color="primary">
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleClickUpload}
+                        color="primary">
+                        Upload
                     </Button>
                 </DialogActions>
             </Dialog>
