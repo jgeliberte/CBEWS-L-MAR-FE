@@ -283,19 +283,23 @@ function IncidentReports() {
         setFilename(file.name);
     };
 
-    const handleClickUpload = () => {
+    const handleClickUpload = ir_id => () => {
         const data = new FormData();
         data.append("file", file_to_upload);
+        data.append("ir_id", ir_id);
 
         fetch(`${AppConfig.HOSTNAME}/api/maintenance/incident_reports/upload_report_attachment`, {
             method: 'POST',
             body: data,
-        }).then((response) => {
+        }).then(response => response.json())
+        .then((response) => {
+            const { message } = response;
             if (response.ok) {
                 handleUploadClose();
                 setFileToUpload(null);
                 setFilename("");
             }
+            alert(message);
         })
         .catch(error => console.error(error));
     };
@@ -530,7 +534,7 @@ function IncidentReports() {
                         Cancel
                     </Button>
                     <Button
-                        onClick={handleClickUpload}
+                        onClick={handleClickUpload(dialog_vars.ir_id)}
                         color="primary">
                         Upload
                     </Button>

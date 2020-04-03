@@ -99,6 +99,7 @@ function MaintenanceLogs() {
 
     const [file_to_upload, setFileToUpload] = useState(null);
     const [filename, setFilename] = useState("");
+    const [log_attachments, setLogAttachments] = useState([]);
 
     function getMaintenanceLogsPerDay(day) {
         fetch(`${AppConfig.HOSTNAME}/api/maintenance/maintenance_logs/fetch`, {
@@ -278,27 +279,52 @@ function MaintenanceLogs() {
         setFilename(file.name);
     };
 
-    const handleClickUpload = () => {
+    const handleClickUpload = maintenance_log_id => () => {
         const data = new FormData();
         data.append("file", file_to_upload);
+        data.append("maintenance_log_id", maintenance_log_id);
 
         fetch(`${AppConfig.HOSTNAME}/api/maintenance/maintenance_logs/upload_log_attachment`, {
             method: 'POST',
             body: data,
-        }).then((response) => {
+        }).then(response => response.json())
+        .then(response => {
+            const { message } = response;
             if (response.ok) {
                 handleUploadClose();
                 setFileToUpload(null);
                 setFilename("");
             }
+            alert(message);
         })
         .catch(error => console.error(error));
+    };
+
+    const getLogAttachments = maintenance_log_id => () => {
+        console.log("PASOK");
     };
 
     const rowClickHandler = (key, data) => () => {
         setToUpdate(true);
         setDialogVars(data);
-        if (key === "edit") setOpen(true);
+        if (key === "edit") {
+            fetch(`${AppConfig.HOSTNAME}/api/maintenance/maintenance_logs/fetch_log_attachments/${data.maintenance_log_id}`, {
+                method: 'GET',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                }
+            }).then(response => response.json()
+            ).then(response => {
+                const { message } = response;
+                if (response.ok) {
+                    console.log("response", response);
+                    setLogAttachments(response.data);
+                    setOpen(true);
+                }
+                alert(message);
+            }).catch(error => console.error(error));
+        }
         else setConfirmOpen(true);
     };
 
@@ -477,13 +503,11 @@ function MaintenanceLogs() {
                     />
                     {
                         toUpdate ? (
-                            <Fragment>
-                                <CustomGridList 
-                                    data={[]}
-                                    type="cra_list"
-                                    // handleDownload={Helpers.downloadBlob}
-                                    handleDownload={handleDelete}
-                                    handleDelete={handleDelete}
+                            <Container align="center">
+                                <CustomGridList
+                                    data={log_attachments}
+                                    handleDelete={() => console.log("DELETE")}
+                                    handleDownload={() => console.log("DOWNLOAD")}
                                 />
                                 <Fab variant="extended"
                                     color={"primary"}
@@ -491,7 +515,7 @@ function MaintenanceLogs() {
                                     onClick={handleUploadOpen}>
                                     Upload Attachments
                                 </Fab>  
-                            </Fragment>
+                            </Container>
                         ) : (
                             <Typography>You can attach files after saving the log.</Typography>
                         )
@@ -553,7 +577,7 @@ function MaintenanceLogs() {
                         Cancel
                     </Button>
                     <Button
-                        onClick={handleClickUpload}
+                        onClick={handleClickUpload(dialog_vars.maintenance_log_id)}
                         color="primary">
                         Upload
                     </Button>
