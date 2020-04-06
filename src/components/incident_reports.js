@@ -1,5 +1,4 @@
-import React, { Fragment, useState } from 'react'
-import CustomGridList from '../reducers/grid_list'
+import React, { Fragment, useState } from 'react';
 import {
     Container, Grid, Fab, Paper, Table, Typography,
     TableBody, TableCell, TableHead, TableRow, TextField,
@@ -25,6 +24,9 @@ import {
 } from '@material-ui/pickers';
 import MomentUtils from '@date-io/moment';
 import moment from "moment";
+
+import AttachmentsGridList from '../reducers/attachment_list';
+import PDFPreviewer from '../reducers/pdf_previewer'
 import AppConfig from "../reducers/AppConfig";
 
 const imageStyle = makeStyles(theme => ({
@@ -95,6 +97,7 @@ function IncidentReports() {
 
     const [file_to_upload, setFileToUpload] = useState(null);
     const [filename, setFilename] = useState("");
+    const [report_attachments, setReportAttachments] = useState([])
 
     function getIncidentReportsPerDay(day) {
         fetch(`${AppConfig.HOSTNAME}/api/maintenance/incident_reports/fetch`, {
@@ -307,8 +310,24 @@ function IncidentReports() {
     const rowClickHandler = (key, data) => () => {
         setToUpdate(true);
         setDialogVars(data);
-        if (key === "edit") setOpen(true);
-        else setConfirmOpen(true);
+        if (key === "edit") {
+            fetch(`${AppConfig.HOSTNAME}/api/maintenance/incident_reports/fetch_report_attachments/${data.ir_id}`, {
+                method: 'GET',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                }
+            }).then(response => response.json()
+            ).then(response => {
+                const { message } = response;
+                if (response.ok) {
+                    console.log("response", response);
+                    setReportAttachments(response.data);
+                    setOpen(true);
+                }
+                alert(message);
+            }).catch(error => console.error(error));
+        } else setConfirmOpen(true);
     };
 
     return (
@@ -327,17 +346,7 @@ function IncidentReports() {
                     <Grid item xs={6}>
 
                         <Grid container>
-                            <Paper>
-                                <Grid item xs={12}>
-                                    <img src={require('../assets/letter_header.png')} className={img.img_size} alt="footer" />
-                                </Grid>
-                                <Grid item xs={12} className={summary.content}>
-                                    Content
-                                </Grid>
-                                <Grid item xs={12}>
-                                    <img src={require('../assets/letter_footer.png')} className={img.img_size} alt="footer" />
-                                </Grid>
-                            </Paper>
+                            <PDFPreviewer />
                             <Grid item xs={12}>
                                 <Grid container align="center" style={{ paddingTop: 20 }}>
                                     <Grid item xs={3} />
@@ -458,13 +467,9 @@ function IncidentReports() {
                     />
                     {
                         toUpdate ? (
-                            <Fragment>
-                                <CustomGridList 
-                                    data={[]}
-                                    type="cra_list"
-                                    // handleDownload={Helpers.downloadBlob}
-                                    handleDownload={handleDelete}
-                                    handleDelete={handleDelete}
+                            <Container align="center">
+                                <AttachmentsGridList
+                                    data={report_attachments}
                                 />
                                 <Fab variant="extended"
                                     color={"primary"}
@@ -472,7 +477,7 @@ function IncidentReports() {
                                     onClick={handleUploadOpen}>
                                     Upload Attachments
                                 </Fab>  
-                            </Fragment>
+                            </Container>
                         ) : (
                             <Typography>You can attach files after saving the log.</Typography>
                         )

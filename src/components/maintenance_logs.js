@@ -1,5 +1,4 @@
-import React, { Fragment, useEffect, useState } from 'react'
-import CustomGridList from '../reducers/grid_list'
+import React, { Fragment, useEffect, useState } from 'react';
 import {
     Container, Grid, Fab, Paper, Table,
     TableBody, TableCell, TableHead, TableRow, TextField,
@@ -25,8 +24,10 @@ import {
 } from '@material-ui/pickers';
 import MomentUtils from '@date-io/moment';
 import moment from "moment";
-import AppConfig from "../reducers/AppConfig";
 
+import AttachmentsGridList from '../reducers/attachment_list';
+import PDFPreviewer from '../reducers/pdf_previewer'
+import AppConfig from "../reducers/AppConfig";
 
 const imageStyle = makeStyles(theme => ({
     img_size: {
@@ -85,7 +86,6 @@ function MaintenanceLogs() {
     const img = imageStyle();
     const summary = summaryStyle();
     const classes = generalStyle();
-    const dt_classes = tableStyle();
 
     const [range_start, setRangeStart] = useState("");
     const [range_end, setRangeEnd] = useState("");
@@ -288,20 +288,16 @@ function MaintenanceLogs() {
             method: 'POST',
             body: data,
         }).then(response => response.json())
-        .then(response => {
-            const { message } = response;
-            if (response.ok) {
-                handleUploadClose();
-                setFileToUpload(null);
-                setFilename("");
-            }
-            alert(message);
-        })
-        .catch(error => console.error(error));
-    };
-
-    const getLogAttachments = maintenance_log_id => () => {
-        console.log("PASOK");
+            .then(response => {
+                const { message } = response;
+                if (response.ok) {
+                    handleUploadClose();
+                    setFileToUpload(null);
+                    setFilename("");
+                }
+                alert(message);
+            })
+            .catch(error => console.error(error));
     };
 
     const rowClickHandler = (key, data) => () => {
@@ -344,17 +340,12 @@ function MaintenanceLogs() {
                     <Grid item xs={6}>
 
                         <Grid container>
-                            <Paper>
-                                <Grid item xs={12}>
-                                    <img src={require('../assets/letter_header.png')} className={img.img_size} alt="footer" />
-                                </Grid>
-                                <Grid item xs={12} className={summary.content}>
-                                    Content
-                                </Grid>
-                                <Grid item xs={12}>
-                                    <img src={require('../assets/letter_footer.png')} className={img.img_size} alt="footer" />
-                                </Grid>
-                            </Paper>
+                            <PDFPreviewer data={(
+                                <LogTable
+                                    rows={rows}
+                                    rowClickHandler={rowClickHandler}
+                                />
+                            )} />
                             <Grid item xs={12}>
                                 <Grid container align="center" style={{ paddingTop: 20 }}>
                                     <Grid item xs={3} />
@@ -381,49 +372,10 @@ function MaintenanceLogs() {
 
                     </Grid>
                     <Grid item xs={12}>
-                        <Paper className={dt_classes.root}>
-                            {
-                                rows.length > 0 ? (
-                                    <Table className={dt_classes.table}>
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell>Actions</TableCell>
-                                                <TableCell>Date and time</TableCell>
-                                                <TableCell>Type of maintenance</TableCell>
-                                                <TableCell>Remarks</TableCell>
-                                                <TableCell>In-charge</TableCell>
-                                                <TableCell>Updater</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {rows.map(row => (
-                                                <TableRow key={row.date_time}>
-                                                    <TableCell>
-                                                        <Button onClick={rowClickHandler("edit", row)} color="primary">
-                                                            {/* Edit */}
-                                                            <EditIcon />
-                                                        </Button>
-                                                        <Button onClick={rowClickHandler("delete", row)} color="primary">
-                                                            {/* Delete */}
-                                                            <DeleteIcon />
-                                                        </Button>
-                                                    </TableCell>
-                                                    <TableCell component="th" scope="row">
-                                                        {row.maintenance_ts}
-                                                    </TableCell>
-                                                    <TableCell>{row.maintenance_type.charAt(0).toUpperCase() + row.maintenance_type.slice(1)}</TableCell>
-                                                    <TableCell>{row.remarks}</TableCell>
-                                                    <TableCell>{row.in_charge}</TableCell>
-                                                    <TableCell>{row.updater}</TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                ) : (
-                                        <Typography>No maintenance happened on selected date.</Typography>
-                                    )
-                            }
-                        </Paper>
+                        <LogTable
+                            rows={rows}
+                            rowClickHandler={rowClickHandler}
+                        />
                     </Grid>
                     <Grid item xs={12}>
                         <Grid container>
@@ -504,21 +456,19 @@ function MaintenanceLogs() {
                     {
                         toUpdate ? (
                             <Container align="center">
-                                <CustomGridList
+                                <AttachmentsGridList
                                     data={log_attachments}
-                                    handleDelete={() => console.log("DELETE")}
-                                    handleDownload={() => console.log("DOWNLOAD")}
                                 />
                                 <Fab variant="extended"
                                     color={"primary"}
                                     aria-label="add"
                                     onClick={handleUploadOpen}>
                                     Upload Attachments
-                                </Fab>  
+                                </Fab>
                             </Container>
                         ) : (
-                            <Typography>You can attach files after saving the log.</Typography>
-                        )
+                                <Typography>You can attach files after saving the log.</Typography>
+                            )
                     }
                 </DialogContent>
                 <DialogActions>
@@ -586,6 +536,56 @@ function MaintenanceLogs() {
 
         </Fragment>
     )
+}
+
+function LogTable(props) {
+    const { rows, rowClickHandler } = props;
+    const dt_classes = tableStyle();
+    return (
+        <Paper className={dt_classes.root}>
+            {
+                rows.length > 0 ? (
+                    <Table className={dt_classes.table}>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>Actions</TableCell>
+                                <TableCell>Date and time</TableCell>
+                                <TableCell>Type of maintenance</TableCell>
+                                <TableCell>Remarks</TableCell>
+                                <TableCell>In-charge</TableCell>
+                                <TableCell>Updater</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {rows.map(row => (
+                                <TableRow key={row.date_time}>
+                                    <TableCell>
+                                        <Button onClick={rowClickHandler("edit", row)} color="primary">
+                                            {/* Edit */}
+                                            <EditIcon />
+                                        </Button>
+                                        <Button onClick={rowClickHandler("delete", row)} color="primary">
+                                            {/* Delete */}
+                                            <DeleteIcon />
+                                        </Button>
+                                    </TableCell>
+                                    <TableCell component="th" scope="row">
+                                        {row.maintenance_ts}
+                                    </TableCell>
+                                    <TableCell>{row.maintenance_type.charAt(0).toUpperCase() + row.maintenance_type.slice(1)}</TableCell>
+                                    <TableCell>{row.remarks}</TableCell>
+                                    <TableCell>{row.in_charge}</TableCell>
+                                    <TableCell>{row.updater}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                ) : (
+                        <Typography>No maintenance happened on selected date.</Typography>
+                    )
+            }
+        </Paper>
+    );
 }
 
 
