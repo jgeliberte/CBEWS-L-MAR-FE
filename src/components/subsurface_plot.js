@@ -7,6 +7,7 @@ import moment from "moment";
 import { getSubsurfacePlotData } from "./sample_subsurface_data_not_final";
 import TransitionalModal from '../reducers/loading';
 import AppConfig from '../reducers/AppConfig';
+require("highcharts/modules/exporting")(Highcharts);
 
 const useStyles = makeStyles(theme => ({
 
