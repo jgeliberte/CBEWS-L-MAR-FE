@@ -1,18 +1,20 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import {
     Grid, Paper, Container,
     Fab, makeStyles, Table,
     TableBody, TableCell, TableHead,
     TableRow, Dialog, DialogActions, DialogContent,
-    DialogContentText, DialogTitle, Button, Box, TextField
+    DialogContentText, DialogTitle, Button, Box, TextField, Typography
 } from "@material-ui/core";
-
 
 import {
     MuiPickersUtilsProvider,
-    KeyboardDatePicker,
+    DateTimePicker,
 } from '@material-ui/pickers';
 import MomentUtils from '@date-io/moment';
+import moment from 'moment';
+
+import AppConfig from '../reducers/AppConfig';
 
 const tableStyle = makeStyles(theme => ({
     root: {
@@ -51,10 +53,59 @@ function MoMs() {
     const dt_classes = tableStyle();
     const classes = useStyles();
 
-    const [openRaise, setOpenRaise] = React.useState(false);
+    const [openRaise, setOpenRaise] = useState(false);
+    const [momsContainer, setMomsContainer] = useState([]);
 
-    const handleClickOpenRaise = () => {
-        setOpenRaise(true);
+    const [datatable, setDatatable] = useState([]);
+
+    useEffect(()=> {
+        initMoms();
+    },[]);
+    const initMoms = (site_code = 29) => {
+        fetch(`${AppConfig.HOSTNAME}/api/ground_data/moms/fetch/${site_code}`, {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            }
+        }).then((response) => response.json())
+            .then((responseJson) => {
+                let moms_container = [];
+                responseJson.data.forEach(element => {
+                    const [feature_id, instance_id, site_id, feature_name, 
+                        location, reporter, moms_id, observace_ts, reporter_id,
+                        remarks, validator, op_trigger, feature_type, feature_desc] = element
+                    let temp = {
+                    "instance_id":instance_id,
+                    "site_id":site_id,
+                    "feature_id":feature_id,
+                    "feature_name":feature_name,
+                    "location":location,
+                    "reporter":reporter,
+                    "moms_id":moms_id,
+                    "observance_ts":moment(observace_ts).format('YYYY-MM-DD HH:mm:ss'),
+                    "reporter_id":reporter_id,
+                    "remarks":remarks,
+                    "validator":validator,
+                    "op_trigger":op_trigger,
+                    "feature_type": feature_type,
+                    "feature_desc": feature_desc
+                    }
+                    moms_container.push(temp)
+                });
+                setMomsContainer(moms_container);
+                console.log(moms_container)
+                setDatatable(moms_container);
+            })
+            .catch((error) => {
+                console.log(error);
+            }
+        );
+    }
+
+    const handleClickOpenModalMoms = (data) => {
+        console.log(data)
+        setOpenForm(true);
     };
 
     const handleCloseRaise = () => {
@@ -104,20 +155,18 @@ function MoMs() {
             >
                 <DialogTitle id="alert-dialog-title">Manifestation of Movements</DialogTitle>
                 <DialogContent>
-                    <MuiPickersUtilsProvider utils={MomentUtils}>
-                        <KeyboardDatePicker
-                            disableToolbar
-                            variant="inline"
-                            format="MM-DD-YYYY HH:mm:ss"
-                            margin="normal"
-                            id="date-picker-start"
-                            label="Date time"
-                            KeyboardButtonProps={{
-                                'aria-label': 'change date',
-                            }}
-                            fullWidth
-                        />
-                    </MuiPickersUtilsProvider>
+                <MuiPickersUtilsProvider utils={MomentUtils}>
+                    <DateTimePicker
+                        autoOk
+                        ampm={false}
+                        disableFuture
+                        format="YYYY-MM-DD HH:mm:ss"
+                        value={moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}
+                        onChange={(date) => { console.log(moment(date).format("YYYY-MM-DD HH:mm:ss")) }}
+                        label="Date time"
+                        fullWidth
+                    />
+                </MuiPickersUtilsProvider>
                     <TextField
                         autoFocus
                         margin="dense"
@@ -161,30 +210,43 @@ function MoMs() {
                                 <TableHead>
                                     <TableRow>
                                         <TableCell>Date and time</TableCell>
-                                        <TableCell>Feature</TableCell>
+                                        <TableCell>Feature type</TableCell>
+                                        <TableCell>Feature name</TableCell>
+                                        <TableCell>Location</TableCell>
                                         <TableCell>Reporter</TableCell>
                                         <TableCell>Description</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {rows.map(row => (
-                                        <TableRow key={row.date_time} onClick={handleClickOpenRaise}>
-                                            <TableCell component="th" scope="row">
-                                                {row.date_time}
-                                            </TableCell>
-                                            <TableCell>{row.feature}</TableCell>
-                                            <TableCell>{row.reporter}</TableCell>
-                                            <TableCell>{row.description}</TableCell>
+                                    {
+                                        datatable.length == 0 ?
+                                        <TableRow>
+                                            <Typography variant="h5" align="center">
+                                                No data available
+                                            </Typography>
                                         </TableRow>
-                                    ))}
+                                        :
+                                        datatable.map(row => (
+                                            <TableRow key={row.observance_ts} onClick={()=> {handleClickOpenModalMoms(row)}} >
+                                                <TableCell component="th" scope="row">
+                                                    {row.observance_ts}
+                                                </TableCell>
+                                                <TableCell>{row.feature_type}</TableCell>
+                                                <TableCell>{row.feature_name}</TableCell>
+                                                <TableCell>{row.location}</TableCell>
+                                                <TableCell>{row.validator}</TableCell>
+                                                <TableCell>{row.feature_desc}</TableCell>
+                                            </TableRow>
+                                        ))
+                                    }
                                 </TableBody>
                             </Table>
                         </Paper>
                     </Grid>
                     <Grid item xs={12}>
-                        <Box>
-                            * click row to raise moms.
-                    </Box>
+                        <Typography variant="subtitle2">
+                            * click row to Raise/Modify/Remove Manifestation of Movements data.
+                        </Typography>
                     </Grid>
                     <Grid container align="center" style={{ paddingTop: 20 }}>
 
