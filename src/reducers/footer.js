@@ -6,7 +6,7 @@ const useStyles = makeStyles(theme => ({
     appBar: {
         top: 'auto',
         bottom: 0,
-        padding: 20,
+        padding: 5,
         alignItems: 'center'
     },
     contactDetails: {

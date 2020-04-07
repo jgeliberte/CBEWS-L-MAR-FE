@@ -88,19 +88,39 @@ function EarthquakeTables() {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {eqDsiplay.map(row => (
-                                    <TableRow key={row.date_time}>
-                                        <TableCell component="th" scope="row">
-                                            {row.date_time}
-                                        </TableCell>
-                                        <TableCell>{row.depth}</TableCell>
-                                        <TableCell>{row.magnitude}</TableCell>
-                                        <TableCell>{row.latitude}</TableCell>
-                                        <TableCell>{row.longitude}</TableCell>
-                                        <TableCell>{row.distance}</TableCell>
-                                        <TableCell>{row.site}</TableCell>
-                                    </TableRow>
-                                ))}
+                                {eqDsiplay.map(row => {
+                                    let ret_val = [];
+                                    if (row.magnitude > 5) {
+                                        ret_val.push(
+                                            <TableRow key={row.date_time} style={{backgroundColor: '#e87d5b'}}>
+                                                <TableCell component="th" scope="row">
+                                                    {row.date_time}
+                                                </TableCell>
+                                                <TableCell>{row.depth}</TableCell>
+                                                <TableCell>{row.magnitude}</TableCell>
+                                                <TableCell>{row.latitude}</TableCell>
+                                                <TableCell>{row.longitude}</TableCell>
+                                                <TableCell>{row.distance}</TableCell>
+                                                <TableCell>{row.site}</TableCell>
+                                            </TableRow>
+                                        )
+                                    } else {
+                                        ret_val.push(
+                                            <TableRow key={row.date_time}>
+                                                <TableCell component="th" scope="row">
+                                                    {row.date_time}
+                                                </TableCell>
+                                                <TableCell>{row.depth}</TableCell>
+                                                <TableCell>{row.magnitude}</TableCell>
+                                                <TableCell>{row.latitude}</TableCell>
+                                                <TableCell>{row.longitude}</TableCell>
+                                                <TableCell>{row.distance}</TableCell>
+                                                <TableCell>{row.site}</TableCell>
+                                            </TableRow>
+                                        )
+                                    }
+                                    return ret_val;
+                                })}
                             </TableBody>
                             <TablePagination
                                 rowsPerPageOptions={[5, 10, 25]}
