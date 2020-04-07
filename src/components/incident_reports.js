@@ -1,9 +1,15 @@
-import React, { Fragment } from 'react'
-import { Container, Grid, Fab, Paper, Table,
-    TableBody, TableCell, TableHead, TableRow, TextField, Button } from '@material-ui/core';
+import React, { Fragment, useState } from 'react';
+import {
+    Container, Grid, Fab, Paper, Table, Typography,
+    TableBody, TableCell, TableHead, TableRow, TextField,
+    Button, Input
+} from '@material-ui/core';
+import DeleteIcon from '@material-ui/icons/Delete';
+import EditIcon from '@material-ui/icons/Edit';
 import { makeStyles } from '@material-ui/core/styles';
-import FullCalendar from '@fullcalendar/react'
-import dayGridPlugin from '@fullcalendar/daygrid'
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin from "@fullcalendar/interaction";
 import '../../node_modules/@fullcalendar/core/main.css';
 import '../../node_modules/@fullcalendar/daygrid/main.css';
 
@@ -17,6 +23,11 @@ import {
     KeyboardDatePicker,
 } from '@material-ui/pickers';
 import MomentUtils from '@date-io/moment';
+import moment from "moment";
+
+import AttachmentsGridList from '../reducers/attachment_list';
+import PDFPreviewer from '../reducers/pdf_previewer'
+import AppConfig from "../reducers/AppConfig";
 
 const imageStyle = makeStyles(theme => ({
     img_size: {
@@ -61,56 +72,281 @@ function getWindowDimensions() {
     };
 }
 
+const defaultVars = {
+    report_ts: moment().format("YYYY-MM-DD hh:mm:ss"),
+    description: "",
+    reporter: "",
+    // attachment: "",
+    site_id: AppConfig.CONFIG.site_id
+};
+
 function IncidentReports() {
     const img = imageStyle();
     const summary = summaryStyle();
     const classes = generalStyle();
     const dt_classes = tableStyle();
 
-    function createData( date_time, incident_narrative, reporter, attachment ) {
-        return { date_time, incident_narrative, reporter, attachment };
+    const [flag, setFlag] = useState(true);
+    const [range_start, setRangeStart] = useState("");
+    const [range_end, setRangeEnd] = useState("");
+    const [rows, setRows] = useState([]);
+    const [events, setEvents] = useState([]);
+    const [dialog_vars, setDialogVars] = useState(defaultVars);
+    const [toUpdate, setToUpdate] = useState(false);
+    const [uploadOpen, setUploadOpen] = useState(false);
+
+    const [file_to_upload, setFileToUpload] = useState(null);
+    const [filename, setFilename] = useState("");
+    const [report_attachments, setReportAttachments] = useState([])
+
+    function getIncidentReportsPerDay(day) {
+        fetch(`${AppConfig.HOSTNAME}/api/maintenance/incident_reports/fetch`, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "site_id": AppConfig.CONFIG.site_id,
+                "ts_dict": {
+                    "start": `${moment(day).format("YYYY-MM-DD")} 00:00:00`,
+                    "end": `${moment(day).format("YYYY-MM-DD")} 23:59:00`
+                }
+            }),
+        }).then(response => response.json()
+        ).then(response => {
+            if (response.ok) setRows(response.data);
+        }).catch(error => console.error(error));
     }
 
-    const rows = [
-        createData('2019-10-06 04:20:00', 'Nasira ng mga bata ang kawad sa sensor', 'Carlo Bontia', 'NA'),
-        createData('2019-10-06 04:00:00', 'Natangal ang pan salok ng sensor', 'Carlo Bontia', 'NA'),
-        createData('2019-10-06 03:50:00', 'Nasira ang bakod', 'Carlo Bontia', 'NA'),
-        createData('2019-10-06 03:30:00', 'Nawala ang battery', 'Carlo Bontia', 'NA'),
-        createData('2019-10-06 03:20:00', 'Nabasa ng ulan ang loob ng data logger', 'Carlo Bontia', 'NA'),
-    ];
+    function getIncidentReportsPerMonth(start, end) {
+        setRangeStart(start);
+        setRangeEnd(end);
+        fetch(`${AppConfig.HOSTNAME}/api/maintenance/incident_reports/fetch`, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "site_id": AppConfig.CONFIG.site_id,
+                "ts_dict": {
+                    "start": `${moment(start).format("YYYY-MM-DD")} 00:00:00`,
+                    "end": `${moment(end).format("YYYY-MM-DD")} 23:59:00`
+                }
+            }),
+        }).then(response => response.json()
+        ).then(response => {
+            if (response.ok) setEvents(response.data.map(row => ({
+                "title": row.reporter,
+                "date": moment(row.report_ts).format("YYYY-MM-DD")
+            })));
+            else console.error("Problem in getIncidentReportsPerMonth backend");
+        }).catch(error => console.error(error));
+    }
 
-    const [open, setOpen] = React.useState(false);
+    function addIncidentReport(payload) {
+        const data = new FormData();
+        data.append("file", "");
+        data.append("report_ts", payload.report_ts);
+        console.log("formdata", data);
+        
+        fetch(`${AppConfig.HOSTNAME}/api/maintenance/incident_reports/add`, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        }).then(response => response.json()
+        ).then(response => {
+            if (response.ok) {
+                getIncidentReportsPerMonth(range_start, range_end);
+                getIncidentReportsPerDay(payload.report_ts)
+                handleClose();
+            }
+            else console.error("Problem in addIncidentReport backend");
+            alert(response.message);
+        }).catch(error => console.error(error));
+    }
+
+    function updateIncidentReport(temp_payload) {
+        const payload = {
+            ...temp_payload,
+            site_id: AppConfig.CONFIG.site_id
+        }
+        fetch(`${AppConfig.HOSTNAME}/api/maintenance/incident_reports/update`, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        }).then(response => response.json()
+        ).then(response => {
+            if (response.ok) {
+                getIncidentReportsPerMonth(range_start, range_end);
+                getIncidentReportsPerDay(temp_payload.report_ts);
+                handleClose();
+            }
+            else console.error("Problem in updateIncidentReport backend");
+            alert(response.message);
+        }).catch(error => console.error(error));
+    }
+
+    function deleteIncidentReport(payload) {
+        const site_id = AppConfig.CONFIG.site_id;
+        fetch(`${AppConfig.HOSTNAME}/api/maintenance/incident_reports/remove/${site_id}/${payload.ir_id}`, {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            }
+        }).then(response => response.json()
+        ).then(response => {
+            if (response.ok) {
+                getIncidentReportsPerMonth(range_start, range_end);
+                getIncidentReportsPerDay(payload.report_ts);
+                handleConfirmClose();
+            }
+            else console.error("Problem in deleteIncidentReport backend");
+            alert(response.message);
+        }).catch(error => console.error(error));
+    }
+    const [open, setOpen] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
 
     const handleClickOpen = () => {
-      setOpen(true);
-    };
-  
-    const handleClose = () => {
-      setOpen(false);
+        setDialogVars(defaultVars);
+        setToUpdate(false);
+        setOpen(true);
     };
 
+    const handleClose = () => {
+        setDialogVars(defaultVars);
+        setToUpdate(false);
+        setOpen(false);
+    };
+
+    const handleConfirmClose = () => {
+        setDialogVars(defaultVars);
+        setConfirmOpen(false);
+        setToUpdate(false);
+    };
+
+    const handleUploadOpen = () => {
+        setUploadOpen(true);
+    };
+
+    const handleUploadClose = () => {
+        setFileToUpload(null);
+        setFilename("");
+        setUploadOpen(false);
+    };
+
+    const dateClickHandler = args => {
+        getIncidentReportsPerDay(args.date);
+    };
+
+    const calendarRenderHandler = args => {
+        const { dates } = args.view.dayTable.daySeries;
+        const length = dates.length
+        getIncidentReportsPerMonth(dates[0], dates[length - 1]);
+    };
+
+    const handleSubmit = () => {
+        const payload = dialog_vars;
+        if (toUpdate) updateIncidentReport(payload);
+        else addIncidentReport(payload);
+    };
+
+    const handleDelete = () => {
+        const payload = dialog_vars;
+        deleteIncidentReport(payload);
+    };
+
+    const dateHandler = data => {
+        setDialogVars({
+            ...dialog_vars,
+            report_ts: moment(data).format("YYYY-MM-DD hh:mm:ss")
+        });
+    };
+
+    const changeHandler = key => event => {
+        const { value } = event.target;
+        setDialogVars({
+            ...dialog_vars,
+            [key]: value
+        });
+    };
+
+    const handleFileSelection = event => {
+        const file = event.target.files[0];
+        setFileToUpload(file);
+        setFilename(file.name);
+    };
+
+    const handleClickUpload = ir_id => () => {
+        const data = new FormData();
+        data.append("file", file_to_upload);
+        data.append("ir_id", ir_id);
+
+        fetch(`${AppConfig.HOSTNAME}/api/maintenance/incident_reports/upload_report_attachment`, {
+            method: 'POST',
+            body: data,
+        }).then(response => response.json())
+        .then((response) => {
+            const { message } = response;
+            if (response.ok) {
+                handleUploadClose();
+                setFileToUpload(null);
+                setFilename("");
+            }
+            alert(message);
+        })
+        .catch(error => console.error(error));
+    };
+
+    const rowClickHandler = (key, data) => () => {
+        setToUpdate(true);
+        setDialogVars(data);
+        if (key === "edit") {
+            fetch(`${AppConfig.HOSTNAME}/api/maintenance/incident_reports/fetch_report_attachments/${data.ir_id}`, {
+                method: 'GET',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                }
+            }).then(response => response.json()
+            ).then(response => {
+                const { message } = response;
+                if (response.ok) {
+                    console.log("response", response);
+                    setReportAttachments(response.data);
+                    setOpen(true);
+                }
+                alert(message);
+            }).catch(error => console.error(error));
+        } else setConfirmOpen(true);
+    };
 
     return (
         <Fragment>
             <Container align="center" justify="center">
                 <Grid container spacing={2}>
                     <Grid item xs={6}>
-                        <FullCalendar defaultView="dayGridMonth" plugins={[dayGridPlugin]} />
+                        <FullCalendar
+                            datesRender={calendarRenderHandler}
+                            dateClick={dateClickHandler}
+                            events={events}
+                            defaultView="dayGridMonth"
+                            plugins={[dayGridPlugin, interactionPlugin]}
+                        />
                     </Grid>
                     <Grid item xs={6}>
 
                         <Grid container>
-                            <Paper>
-                                <Grid item xs={12}>
-                                    <img src={require('../assets/letter_header.png')} className={img.img_size} alt="footer" />
-                                </Grid>
-                                <Grid item xs={12} className={summary.content}>
-                                    Content
-                                </Grid>
-                                <Grid item xs={12}>
-                                    <img src={require('../assets/letter_footer.png')} className={img.img_size} alt="footer" />
-                                </Grid>
-                            </Paper>
+                            <PDFPreviewer />
                             <Grid item xs={12}>
                                 <Grid container align="center" style={{ paddingTop: 20 }}>
                                     <Grid item xs={3} />
@@ -141,21 +377,32 @@ function IncidentReports() {
                             <Table className={dt_classes.table}>
                                 <TableHead>
                                     <TableRow>
+                                        <TableCell>Actions</TableCell>
                                         <TableCell>Date and time</TableCell>
                                         <TableCell>Incident Desc / Narrative</TableCell>
                                         <TableCell>Reporter</TableCell>
-                                        <TableCell>Attachment</TableCell>
+                                        {/* <TableCell>Has Attachments</TableCell> */}
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {rows.map(row => (
-                                        <TableRow key={row.date_time}>
-                                            <TableCell component="th" scope="row">
-                                                {row.date_time}
+                                        <TableRow key={row.report_ts}>
+                                            <TableCell>
+                                                <Button onClick={rowClickHandler("edit", row)} color="primary">
+                                                    {/* Edit */}
+                                                    <EditIcon />
+                                                </Button>
+                                                <Button onClick={rowClickHandler("delete", row)} color="primary">
+                                                    {/* Delete */}
+                                                    <DeleteIcon />
+                                                </Button>
                                             </TableCell>
-                                            <TableCell>{row.incident_narrative}</TableCell>
+                                            <TableCell component="th" scope="row">
+                                                {row.report_ts}
+                                            </TableCell>
+                                            <TableCell>{row.description}</TableCell>
                                             <TableCell>{row.reporter}</TableCell>
-                                            <TableCell>{row.attachment}</TableCell>
+                                            {/* <TableCell>{[]}</TableCell> */}
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -180,56 +427,124 @@ function IncidentReports() {
             </Container>
 
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-            <DialogTitle id="form-dialog-title">Incident Report</DialogTitle>
-            <DialogContent>
-            <MuiPickersUtilsProvider utils={MomentUtils}>
-                <KeyboardDatePicker
-                    disableToolbar
-                    variant="inline"
-                    format="MM-DD-YYYY HH:mm:ss"
-                    margin="normal"
-                    id="date-picker-start"
-                    label="Date time"
-                    KeyboardButtonProps={{
-                        'aria-label': 'change date',
-                    }}
-                    fullWidth
-                />
-            </MuiPickersUtilsProvider>
-             <TextField
-                autoFocus
-                margin="dense"
-                id="name"
-                label="Incident Description / Narrative"
-                type="email"
-                fullWidth
-            />
-             <TextField
-                autoFocus
-                margin="dense"
-                id="name"
-                label="Reporter"
-                type="email"
-                fullWidth
-            />
-             <TextField
-                autoFocus
-                margin="dense"
-                id="name"
-                label="Attachment"
-                type="email"
-                fullWidth
-            />
-            </DialogContent>
-            <DialogActions>
-            <Button onClick={handleClose} color="primary">
-                Cancel
-            </Button>
-            <Button onClick={handleClose} color="primary">
-                Confirm
-            </Button>
-            </DialogActions>
-        </Dialog>
+                <DialogTitle id="form-dialog-title">Incident Report</DialogTitle>
+                <DialogContent>
+                    <MuiPickersUtilsProvider utils={MomentUtils}>
+                        <KeyboardDatePicker
+                            disableToolbar
+                            variant="inline"
+                            format="MM-DD-YYYY HH:mm:ss"
+                            margin="normal"
+                            id="date-picker-start"
+                            label="Date time"
+                            KeyboardButtonProps={{
+                                'aria-label': 'change date',
+                            }}
+                            fullWidth
+                            value={dialog_vars.report_ts}
+                            onChange={dateHandler}
+                        />
+                    </MuiPickersUtilsProvider>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        id="description"
+                        label="Incident Description / Narrative"
+                        type="email"
+                        fullWidth
+                        value={dialog_vars.description}
+                        onChange={changeHandler("description")}
+                    />
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        id="reporter"
+                        label="Reporter"
+                        type="email"
+                        fullWidth
+                        value={dialog_vars.reporter}
+                        onChange={changeHandler("reporter")}
+                    />
+                    {
+                        toUpdate ? (
+                            <Container align="center">
+                                <AttachmentsGridList
+                                    data={report_attachments}
+                                />
+                                <Fab variant="extended"
+                                    color={"primary"}
+                                    aria-label="add"
+                                    onClick={handleUploadOpen}>
+                                    Upload Attachments
+                                </Fab>  
+                            </Container>
+                        ) : (
+                            <Typography>You can attach files after saving the log.</Typography>
+                        )
+                    }
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleSubmit} color="primary">
+                        {
+                            toUpdate ? "Update Log" : "Add Log"
+                        }
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog open={confirmOpen} onClose={handleConfirmClose} aria-labelledby="form-dialog-title">
+                <DialogTitle id="form-dialog-title">Incident Report</DialogTitle>
+                <DialogContent>
+                    <Typography>Do you want to delete this report?</Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleConfirmClose} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleDelete} color="primary">
+                        Confirm Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog open={uploadOpen} onClose={handleUploadClose} aria-labelledby="form-dialog-title">
+                <DialogTitle id="form-dialog-title">File upload</DialogTitle>
+                <DialogContent>
+                    <Grid container>
+                        <Grid item xs={8}>
+                            <TextField
+                                autoFocus
+                                margin="dense"
+                                id="name"
+                                label="File path"
+                                type="email"
+                                fullWidth
+                                value={filename}
+                            />
+                        </Grid>
+                        <Grid item xs={2}>
+                            <Input
+                                name="file"
+                                type="file"
+                                onChange={handleFileSelection}
+                            />
+                        </Grid>
+                    </Grid>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleUploadClose} color="primary">
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleClickUpload(dialog_vars.ir_id)}
+                        color="primary">
+                        Upload
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
 
         </Fragment>
