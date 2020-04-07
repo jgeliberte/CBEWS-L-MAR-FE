@@ -1,4 +1,4 @@
-import React, {Fragment, useEffect, useState} from 'react';
+import React, { Fragment, useEffect, useState, useRef } from 'react';
 import {
     Grid, Paper, Container,
     Fab, makeStyles, Table,
@@ -49,10 +49,15 @@ function SurficialMarker() {
     const [markerNames, setMarkerNames] = useState([]);
 
     const [selectedSurficialMarker, setSelectedSurficialMarker] = useState();
-    const [editableTS, setEditableTS] = useState();
+    const [editableTS, setEditableTS] = useState(moment(new Date()).format("YYYY-MM-DD HH:mm:ss"));
     const [editableWeather, setEditableWeather] = useState();
     const [editableObserver, setEditableObserver] = useState();
     const [editableMarkerValues, setEditableMarkerValues] = useState();
+
+    const [addMarkerFields, setAddMarkerFields] = useState([]);
+    const [addTs, setAddTs] = useState(moment(new Date()).format("YYYY-MM-DD HH:mm:ss"));
+    const [addWeather, setAddWeather] = useState();
+    const [addObserver, setAddObserver] = useState();
 
     const [modificationModal, setModificationModal] = useState(false);
     const [markerFields, setMarkerFields] = useState([]);
@@ -60,24 +65,25 @@ function SurficialMarker() {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
+    let markerValueRef = useRef({});
 
-    useEffect(()=> {
+    useEffect(() => {
         initSurficialMarker()
-    },[])
+    }, [])
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
-        let start = newPage*10;
-        let end = (newPage*10)+10;
-        setDtRow(markerData.slice(start,end))
-      };
-    
+        let start = newPage * 10;
+        let end = (newPage * 10) + 10;
+        setDtRow(markerData.slice(start, end))
+    };
+
     const handleChangeRowsPerPage = event => {
         console.log(parseInt(event.target.value, 10));
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
     };
-    
+
     const initSurficialMarker = () => {
         fetch(`${AppConfig.HOSTNAME}/api/ground_data/surficial_markers/fetch/29`, {
             method: 'GET',
@@ -118,42 +124,42 @@ function SurficialMarker() {
                 temp_tr.forEach(element => {
                     temp = [];
                     temp_dr.push(
-                        <TableRow key={element.ts} onClick={()=> {handleModificationModalOpen(element)}}>
+                        <TableRow key={element.ts} onClick={() => { handleModificationModalOpen(element) }}>
                             <TableCell component="th" scope="row">
                                 {element.ts}
                             </TableCell>
-                                {responseJson.markers.forEach(marker_element => {
-                                temp.push(<TableCell>{element[marker_element[1]]}</TableCell>) 
-                                })}
-                                {temp}
+                            {responseJson.markers.forEach(marker_element => {
+                                temp.push(<TableCell>{element[marker_element[1]]}</TableCell>)
+                            })}
+                            {temp}
                             <TableCell>{element.weather}</TableCell>
                             <TableCell>{element.observer}</TableCell>
                         </TableRow>
-                    ) 
+                    )
                 });
                 setMarkerData(temp_dr)
-                setDtRow(temp_dr.slice(0,10))
+                setDtRow(temp_dr.slice(0, 10))
             })
             .catch((error) => {
                 console.log(error);
             }
-        );
+            );
     }
 
-    function createData(date_time, a, b, c, weather, nag_sukat, nag_encode ) {
+    function createData(date_time, a, b, c, weather, nag_sukat, nag_encode) {
         return { date_time, a, b, c, weather, nag_sukat, nag_encode };
     }
 
     const rows = [
-        createData('2019-08-08 07:30:00', '60cm', '58cm', '20cm','MAULAN','Juan Dela Cruz', 'John Geliberte'),
-        createData('2019-08-07 07:30:00', '60cm', '57cm', '20cm','MAARAW','Juan Dela Cruz', 'John Geliberte'),
-        createData('2019-08-06 07:30:00', '60cm', '56cm', '20cm','MAULAN','Juan Dela Cruz', 'John Geliberte'),
-        createData('2019-08-05 07:30:00', '60cm', '54cm', '20cm','MAULAN','Juan Dela Cruz', 'John Geliberte'),
-        createData('2019-08-04 07:30:00', '60cm', '54cm', '20cm','MAULAP','Juan Dela Cruz', 'John Geliberte'),
-        createData('2019-08-03 07:30:00', '60cm', '53cm', '20cm','MAULAN','Juan Dela Cruz', 'John Geliberte'),
-        createData('2019-08-02 07:30:00', '60cm', '53cm', '20cm','MAARAW','Juan Dela Cruz', 'John Geliberte'),
-        createData('2019-08-01 07:30:00', '59cm', '53cm', '20cm','MAULAN','Juan Dela Cruz', 'John Geliberte'),
-        createData('2019-07-30 07:30:00', '58cm', '53cm', '20cm','MAULAN','Juan Dela Cruz', 'John Geliberte')
+        createData('2019-08-08 07:30:00', '60cm', '58cm', '20cm', 'MAULAN', 'Juan Dela Cruz', 'John Geliberte'),
+        createData('2019-08-07 07:30:00', '60cm', '57cm', '20cm', 'MAARAW', 'Juan Dela Cruz', 'John Geliberte'),
+        createData('2019-08-06 07:30:00', '60cm', '56cm', '20cm', 'MAULAN', 'Juan Dela Cruz', 'John Geliberte'),
+        createData('2019-08-05 07:30:00', '60cm', '54cm', '20cm', 'MAULAN', 'Juan Dela Cruz', 'John Geliberte'),
+        createData('2019-08-04 07:30:00', '60cm', '54cm', '20cm', 'MAULAP', 'Juan Dela Cruz', 'John Geliberte'),
+        createData('2019-08-03 07:30:00', '60cm', '53cm', '20cm', 'MAULAN', 'Juan Dela Cruz', 'John Geliberte'),
+        createData('2019-08-02 07:30:00', '60cm', '53cm', '20cm', 'MAARAW', 'Juan Dela Cruz', 'John Geliberte'),
+        createData('2019-08-01 07:30:00', '59cm', '53cm', '20cm', 'MAULAN', 'Juan Dela Cruz', 'John Geliberte'),
+        createData('2019-07-30 07:30:00', '58cm', '53cm', '20cm', 'MAULAN', 'Juan Dela Cruz', 'John Geliberte')
     ];
 
     const dt_classes = tableStyle();
@@ -162,19 +168,45 @@ function SurficialMarker() {
     const [open, setOpen] = React.useState(false);
 
     const handleClickOpen = () => {
-      setOpen(true);
+        let temp = [];
+        let grid =  12 / markerNames.length;
+        markerNames.forEach(element => {
+            temp.push(        
+                <Grid item xs={grid}>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        id={element[0]}
+                        label={`Marker ${element[1]}`}
+                        onChange={(e)=> {handleOnChangeAddMarkerValues(element[1], e.target.value)}}
+                        type="text"
+                        fullWidth
+                    />
+                </Grid>
+            )
+        });
+        setAddMarkerFields(temp);
+        setOpen(true);
     };
-  
+
+    const handleOnChangeAddMarkerValues = (key, value) => {
+        let temp = markerValueRef.current;
+        let key_val = {};
+        key_val[key] = value;
+        temp = {...temp, ...key_val}
+        markerValueRef.current = temp;
+    }
+
     const handleClose = () => {
-      setOpen(false);
+        setOpen(false);
     };
 
     const handleModificationModalClose = () => {
         setModificationModal(false);
     };
-    
+
     const onChangeMarkerFieldValues = (key, value, original) => {
-        switch(key) {
+        switch (key) {
             case 'ts':
                 original[key] = value;
                 setEditableTS(moment(value).format("YYYY-MM-DD HH:mm:ss"));
@@ -198,34 +230,34 @@ function SurficialMarker() {
         setEditableTS(moment(element.ts).format("YYYY-MM-DD HH:mm:ss"))
 
         Object.keys(element).forEach(obj_element => {
-            switch(obj_element) {
+            switch (obj_element) {
                 case 'ts':
                     console.log("DO NOTHING");
                     break;
                 case 'weather':
                     ret_val.push(
                         <TextField
-                        autoFocus
-                        margin="dense"
-                        onChange={(e)=> {onChangeMarkerFieldValues(obj_element,e.target.value, element)}}
-                        defaultValue={element[obj_element]}
-                        id="weather"
-                        label="Weather"
-                        fullWidth
-                    />
+                            autoFocus
+                            margin="dense"
+                            onChange={(e) => { onChangeMarkerFieldValues(obj_element, e.target.value, element) }}
+                            defaultValue={element[obj_element]}
+                            id="weather"
+                            label="Weather"
+                            fullWidth
+                        />
                     )
                     break;
                 case 'observer':
                     ret_val.push(
                         <TextField
-                        autoFocus
-                        margin="dense"
-                        onChange={(e)=> {onChangeMarkerFieldValues(obj_element,e.target.value, element)}}
-                        defaultValue={element[obj_element]}
-                        id="observer"
-                        label="Nag-sukat"
-                        fullWidth
-                    />
+                            autoFocus
+                            margin="dense"
+                            onChange={(e) => { onChangeMarkerFieldValues(obj_element, e.target.value, element) }}
+                            defaultValue={element[obj_element]}
+                            id="observer"
+                            label="Nag-sukat"
+                            fullWidth
+                        />
                     )
                     break;
                 default:
@@ -237,7 +269,7 @@ function SurficialMarker() {
                         id={marker_id}
                         label={`Marker ${obj_element}`}
                         type="number"
-                        onChange={(e)=> {onChangeMarkerFieldValues(obj_element,e.target.value, element)}}
+                        onChange={(e) => { onChangeMarkerFieldValues(obj_element, e.target.value, element) }}
                         fullWidth
                     />)
                     break;
@@ -265,42 +297,73 @@ function SurficialMarker() {
         });
 
         let request = {
-          "site_id": 29,
-          "ref_ts": selectedSurficialMarker.ts,
-          "new_ts": editableTS,
-          "weather": selectedSurficialMarker.weather,
-          "observer": selectedSurficialMarker.observer,
-          "marker_values": temp_markers
+            "site_id": 29,
+            "ref_ts": selectedSurficialMarker.ts,
+            "new_ts": editableTS,
+            "weather": selectedSurficialMarker.weather,
+            "observer": selectedSurficialMarker.observer,
+            "marker_values": temp_markers
         }
 
         console.log(request);
 
         fetch(`${AppConfig.HOSTNAME}/api/ground_data/surficial_markers/modify`, {
-          method: 'PATCH',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(request),
+            method: 'PATCH',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(request),
         }).then((response) => response.json())
-          .then((responseJson) => {
-            if (responseJson.status == true) {
-                initSurficialMarker();
-                handleModificationModalClose();
-            } else {
-                console.log(responseJson);
-                // Enhance UI alerts
+            .then((responseJson) => {
+                if (responseJson.status == true) {
+                    initSurficialMarker();
+                    handleModificationModalClose();
+                } else {
+                    console.log(responseJson);
+                    // Enhance UI alerts
+                }
+            })
+            .catch((error) => {
+                console.log(error)
             }
-          })
-          .catch((error) => {
-            console.log(error)
-          }
-        );
+            );
     }
 
     const deleteMarkerData = () => {
         console.log(selectedSurficialMarker);
         console.log(editableTS)
+    }
+
+    const addMarkerData = () => {
+        fetch(`${AppConfig.HOSTNAME}/api/ground_data/surficial_markers/add`, {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              "ts": addTs,
+              "weather": addWeather,
+              "observer": addObserver,
+              "marker_value": markerValueRef.current,
+              "site_id": 29
+            }),
+          }).then((response) => response.json())
+            .then((responseJson) => {
+              if (responseJson.status == true) {
+                console.log(responseJson);
+                initSurficialMarker();
+              } else {
+                console.log(responseJson)
+                console.log("Failed")
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+            }
+          );
+
     }
 
     return (
@@ -319,7 +382,7 @@ function SurficialMarker() {
                             ampm={false}
                             disableFuture
                             value={editableTS}
-                            onChange={(date) => {setEditableTS(moment(date).format("YYYY-MM-DD HH:mm:ss"))}}
+                            onChange={(date) => { setEditableTS(moment(date).format("YYYY-MM-DD HH:mm:ss")) }}
                             label="Date time"
                             fullWidth
                         />
@@ -339,156 +402,119 @@ function SurficialMarker() {
                 </DialogActions>
             </Dialog>
 
-        <Container fixed>
-            <Grid container align="center" spacing={10}>
-                <Grid item xs={12}>
-                    <Paper className={dt_classes.root}>
-                        <Table className={dt_classes.table}>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>Date and time</TableCell>
-                                    {markersTH}
-                                    <TableCell>Weather</TableCell>
-                                    <TableCell>Nag-sukat</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                            {dtRow}
-                            </TableBody>
-                            <TablePagination
-                                rowsPerPageOptions={[5, 10, 25]}
-                                component="div"
-                                count={markerData.length}
-                                rowsPerPage={rowsPerPage}
-                                page={page}
-                                onChangePage={handleChangePage}
-                                onChangeRowsPerPage={handleChangeRowsPerPage}
-                            />
-                        </Table>
-                    </Paper>
-                </Grid>
-                <Grid container align="center" style={{ paddingTop: 20 }}>
-                    <Grid item xs={2} />
-                    <Grid item xs={3}>
-                        <Fab variant="extended"
-                            color="primary"
-                            aria-label="add" className={classes.button_fluid}
-                            onClick={handleClickOpen}>
-                            Add Ground Measurement
-                        </Fab>
-                    </Grid>
-                    <Grid item xs={2}>
-                        <Fab variant="extended"
-                            color="primary"
-                            aria-label="add" className={classes.button_fluid}
-                            onClick={() => {}}>
-                            Download
-                        </Fab>
-                    </Grid>
-                    <Grid item xs={2}>
-                        <Fab variant="extended"
-                            color="primary"
-                            aria-label="add" className={classes.button_fluid}
-                            onClick={() => {}}>
-                            Print
-                        </Fab>
-                    </Grid>
-                    <Grid item xs={3} />
-                </Grid>
-            </Grid>
-        </Container>
-        <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-            <DialogTitle id="form-dialog-title">Ground measurement</DialogTitle>
-            <DialogContent>
-                <Grid container spacing={2}>
+            <Container fixed>
+                <Grid container align="center" spacing={10}>
                     <Grid item xs={12}>
+                        <Paper className={dt_classes.root}>
+                            <Table className={dt_classes.table}>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>Date and time</TableCell>
+                                        {markersTH}
+                                        <TableCell>Weather</TableCell>
+                                        <TableCell>Nag-sukat</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {dtRow}
+                                </TableBody>
+                                <TablePagination
+                                    rowsPerPageOptions={[5, 10, 25]}
+                                    component="div"
+                                    count={markerData.length}
+                                    rowsPerPage={rowsPerPage}
+                                    page={page}
+                                    onChangePage={handleChangePage}
+                                    onChangeRowsPerPage={handleChangeRowsPerPage}
+                                />
+                            </Table>
+                        </Paper>
+                    </Grid>
+                    <Grid container align="center" style={{ paddingTop: 20 }}>
+                        <Grid item xs={2} />
+                        <Grid item xs={3}>
+                            <Fab variant="extended"
+                                color="primary"
+                                aria-label="add" className={classes.button_fluid}
+                                onClick={handleClickOpen}>
+                                Add Ground Measurement
+                        </Fab>
+                        </Grid>
+                        <Grid item xs={2}>
+                            <Fab variant="extended"
+                                color="primary"
+                                aria-label="add" className={classes.button_fluid}
+                                onClick={() => { }}>
+                                Download
+                        </Fab>
+                        </Grid>
+                        <Grid item xs={2}>
+                            <Fab variant="extended"
+                                color="primary"
+                                aria-label="add" className={classes.button_fluid}
+                                onClick={() => { }}>
+                                Print
+                        </Fab>
+                        </Grid>
+                        <Grid item xs={3} />
+                    </Grid>
+                </Grid>
+            </Container>
+
+
+            <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+                <DialogTitle id="form-dialog-title">Ground measurement</DialogTitle>
+                <DialogContent>
+                    <Grid container spacing={2}>
+                        <Grid item xs={12}>
                         <MuiPickersUtilsProvider utils={MomentUtils}>
-                            <KeyboardDatePicker
-                                disableToolbar
-                                variant="inline"
-                                format="MM-DD-YYYY HH:mm:ss"
-                                margin="normal"
-                                id="date-picker-start"
+                            <DateTimePicker
+                                autoOk
+                                ampm={false}
+                                disableFuture
+                                value={addTs}
+                                onChange={(date) => { setAddTs(moment(date).format("YYYY-MM-DD HH:mm:ss")) }}
                                 label="Date time"
-                                KeyboardButtonProps={{
-                                    'aria-label': 'change date',
-                                }}
                                 fullWidth
                             />
                         </MuiPickersUtilsProvider>
+                        </Grid>
+                        {addMarkerFields}
+                        <Grid item xs={12}>
+                            <TextField
+                                autoFocus
+                                margin="dense"
+                                id="add-weather"
+                                label="Weather"
+                                type="text"
+                                onChange={(e)=> {setAddWeather(e.target.value)}}
+                                fullWidth
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <TextField
+                                autoFocus
+                                margin="dense"
+                                id="add-observer"
+                                label="Nag sukat"
+                                type="text"
+                                onChange={(e)=> {setAddObserver(e.target.value)}}
+                                fullWidth
+                            />
+                        </Grid>
                     </Grid>
-                    <Grid item xs={4}>
-                        <TextField
-                            autoFocus
-                            margin="dense"
-                            id="name"
-                            label="Marker A"
-                            type="email"
-                            fullWidth
-                        />
-                    </Grid>
-                    <Grid item xs={4}>
-                        <TextField
-                            autoFocus
-                            margin="dense"
-                            id="name"
-                            label="Marker B"
-                            type="email"
-                            fullWidth
-                        />
-                    </Grid>
-                    <Grid item xs={4}>
-                        <TextField
-                            autoFocus
-                            margin="dense"
-                            id="name"
-                            label="Marker C"
-                            type="email"
-                            fullWidth
-                        />
-                    </Grid>
-                    <Grid item xs={12}>
-                        <TextField
-                            autoFocus
-                            margin="dense"
-                            id="name"
-                            label="Weather"
-                            type="email"
-                            fullWidth
-                        />
-                    </Grid>
-                    <Grid item xs={12}>
-                        <TextField
-                            autoFocus
-                            margin="dense"
-                            id="name"
-                            label="Nag sukat"
-                            type="email"
-                            fullWidth
-                        />
-                    </Grid>
-                    <Grid item xs={12}>
-                        <TextField
-                            autoFocus
-                            margin="dense"
-                            id="name"
-                            label="Nag encode"
-                            type="email"
-                            fullWidth
-                        />
-                    </Grid>
-                </Grid>
-            </DialogContent>
-            <DialogActions>
-            <Button onClick={handleClose} color="primary">
-                Cancel
-            </Button>
-            <Button onClick={handleClose} color="primary">
-                Confirm
-            </Button>
-            </DialogActions>
-        </Dialog>
-    </Fragment>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={()=> {addMarkerData()}} color="primary">
+                        Confirm
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+        </Fragment>
     )
 }
 
