@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Fragment } from 'react';
+import React, { useState, useEffect, Fragment, useRef } from 'react';
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import * as moment from "moment";
@@ -16,6 +16,8 @@ import {
 } from '@material-ui/pickers';
 import MomentUtils from '@date-io/moment';
 import AppConfig from "../reducers/AppConfig";
+
+require("highcharts/modules/exporting")(Highcharts);
 
 window.moment = moment;
 
@@ -167,6 +169,7 @@ function prepareInstantaneousRainfallChartOption(row, input) {
         credits: {
             enabled: false
         },
+        exporting: { enabled: true},
         time: { timezoneOffset: -8 * 60 }
     };
 }
@@ -267,6 +270,7 @@ function prepareCumulativeRainfallChartOption(row, input) {
         credits: {
             enabled: false
         },
+        exporting: { enabled: true},
         time: { timezoneOffset: -8 * 60 }
     };
 }

@@ -7,6 +7,7 @@ import {
     Grid, Paper, Container, Fab, makeStyles, Typography
 } from "@material-ui/core";
 import AppConfig from "../reducers/AppConfig";
+require("highcharts/modules/exporting")(Highcharts);
 
 const useStyles = makeStyles(theme => ({
 
