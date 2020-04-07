@@ -28,6 +28,7 @@ import moment from "moment";
 import AttachmentsGridList from '../reducers/attachment_list';
 import PDFPreviewer from '../reducers/pdf_previewer'
 import AppConfig from "../reducers/AppConfig";
+import { renderToString } from 'react-dom/server';
 
 const imageStyle = makeStyles(theme => ({
     img_size: {
@@ -324,6 +325,35 @@ function MaintenanceLogs() {
         else setConfirmOpen(true);
     };
 
+    const handleDownload = () => {
+        const html = renderToString(<PDFPreviewer data={rows} dataType="logs" noImport={true} />);
+        console.log("HTML", html)
+        fetch(`${AppConfig.HOSTNAME}/api/reports/send_email`, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                html,
+                filename: "maintenance_report",
+                date: moment().format("YYYY-MM-DD hh:mm:ss"),
+                subject: "Maintenance Report",
+                email: "jlouienepomuceno@gmail.com"
+            }),
+        }).then(response => response.json())
+            .then(response => {
+                const { message } = response;
+                if (response.ok) {
+                    handleUploadClose();
+                    setFileToUpload(null);
+                    setFilename("");
+                }
+                alert(message);
+            })
+            .catch(error => console.error(error));
+    };
+
     return (
         <Fragment>
             <Container align="center" justify="center">
@@ -340,12 +370,17 @@ function MaintenanceLogs() {
                     <Grid item xs={6}>
 
                         <Grid container>
-                            <PDFPreviewer data={(
-                                <LogTable
-                                    rows={rows}
-                                    rowClickHandler={rowClickHandler}
-                                />
-                            )} />
+                            <PDFPreviewer
+                                data={rows}
+                                dataType="log"
+                                noImport={false} 
+                            // data={(
+                            //     <LogTable
+                            //         rows={rows}
+                            //         rowClickHandler={rowClickHandler}
+                            //     />
+                            // )}
+                            />
                             <Grid item xs={12}>
                                 <Grid container align="center" style={{ paddingTop: 20 }}>
                                     <Grid item xs={3} />
@@ -353,7 +388,7 @@ function MaintenanceLogs() {
                                         <Fab variant="extended"
                                             color="primary"
                                             aria-label="add" className={classes.button_fluid}
-                                            onClick={() => { }}>
+                                            onClick={handleDownload}>
                                             Download
                                             </Fab>
                                     </Grid>
