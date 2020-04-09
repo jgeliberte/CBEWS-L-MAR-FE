@@ -325,7 +325,6 @@ function IncidentReports() {
                     setReportAttachments(response.data);
                     setOpen(true);
                 }
-                alert(message);
             }).catch(error => console.error(error));
         } else setConfirmOpen(true);
     };

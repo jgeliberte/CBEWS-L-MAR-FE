@@ -319,7 +319,6 @@ function MaintenanceLogs() {
                     setLogAttachments(response.data);
                     setOpen(true);
                 }
-                alert(message);
             }).catch(error => console.error(error));
         }
         else setConfirmOpen(true);

@@ -42,7 +42,6 @@ function getWindowDimensions() {
 }
 
 function convertToSimpleTable(data_type, rows) {
-    console.log("PASOOOK");
     // const classes = useStyles();
 
     return (
@@ -100,7 +99,6 @@ function PDFPreviewer(props) {
     const summary = summaryStyle();
     const { data, dataType: data_type, noImport } = props;
 
-    console.log(data);
     const html = data.length > 0 ? convertToSimpleTable(data_type, data) : data;
 
     return (
