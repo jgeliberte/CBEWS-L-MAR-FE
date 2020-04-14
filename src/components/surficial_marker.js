@@ -50,9 +50,11 @@ function SurficialMarker() {
 
     const [selectedSurficialMarker, setSelectedSurficialMarker] = useState();
     const [editableTS, setEditableTS] = useState(moment(new Date()).format("YYYY-MM-DD HH:mm:ss"));
-    const [editableWeather, setEditableWeather] = useState();
-    const [editableObserver, setEditableObserver] = useState();
-    const [editableMarkerValues, setEditableMarkerValues] = useState();
+
+    const dt_classes = tableStyle();
+    const classes = useStyles();
+
+    const [open, setOpen] = React.useState(false);
 
     const [addMarkerFields, setAddMarkerFields] = useState([]);
     const [addTs, setAddTs] = useState(moment(new Date()).format("YYYY-MM-DD HH:mm:ss"));
@@ -145,27 +147,6 @@ function SurficialMarker() {
             }
             );
     }
-
-    function createData(date_time, a, b, c, weather, nag_sukat, nag_encode) {
-        return { date_time, a, b, c, weather, nag_sukat, nag_encode };
-    }
-
-    const rows = [
-        createData('2019-08-08 07:30:00', '60cm', '58cm', '20cm', 'MAULAN', 'Juan Dela Cruz', 'John Geliberte'),
-        createData('2019-08-07 07:30:00', '60cm', '57cm', '20cm', 'MAARAW', 'Juan Dela Cruz', 'John Geliberte'),
-        createData('2019-08-06 07:30:00', '60cm', '56cm', '20cm', 'MAULAN', 'Juan Dela Cruz', 'John Geliberte'),
-        createData('2019-08-05 07:30:00', '60cm', '54cm', '20cm', 'MAULAN', 'Juan Dela Cruz', 'John Geliberte'),
-        createData('2019-08-04 07:30:00', '60cm', '54cm', '20cm', 'MAULAP', 'Juan Dela Cruz', 'John Geliberte'),
-        createData('2019-08-03 07:30:00', '60cm', '53cm', '20cm', 'MAULAN', 'Juan Dela Cruz', 'John Geliberte'),
-        createData('2019-08-02 07:30:00', '60cm', '53cm', '20cm', 'MAARAW', 'Juan Dela Cruz', 'John Geliberte'),
-        createData('2019-08-01 07:30:00', '59cm', '53cm', '20cm', 'MAULAN', 'Juan Dela Cruz', 'John Geliberte'),
-        createData('2019-07-30 07:30:00', '58cm', '53cm', '20cm', 'MAULAN', 'Juan Dela Cruz', 'John Geliberte')
-    ];
-
-    const dt_classes = tableStyle();
-    const classes = useStyles();
-
-    const [open, setOpen] = React.useState(false);
 
     const handleClickOpen = () => {
         let temp = [];
