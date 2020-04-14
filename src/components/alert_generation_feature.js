@@ -14,9 +14,11 @@ import RainfallPlot from './rainfall_plot';
 
 function AlertValidation() {
     const [public_alert, setPublicAlert] = useState("Loading...");
+    const [candidate_status, setCandidateStatus] = useState("no_alert");
     const [validity, setValidity] = useState("");
     const [data_ts, setDataTs] = useState("");
     const [as_of_ts, setAsOfTs] = useState("");
+    const [ewi_data, setEwiData] = useState({});
     const [is_release_time, setIsReleaseTime] = useState(false);
     const [rows, setRow] = useState([]);
     const [all_validated, setAllValidated] = useState(false);
@@ -66,16 +68,18 @@ function AlertValidation() {
             }
         }).then(response => response.json())
             .then(responseJson => {
-                console.log("responseJson", responseJson);
-                const { public_alert_level, as_of_ts } = responseJson.data;
-                const as_of_ts_format = moment(responseJson["as_of_ts"]).format("H:mm A, D MMMM YYYY, dddd");
+                console.log("get_mar_alert_validation_data responseJson", responseJson);
+                const { public_alert_level, as_of_ts, candidate_data } = responseJson.data;
+                const as_of_ts_format = moment(as_of_ts).format("H:mm A, D MMMM YYYY, dddd");
                 let rel_trig;
+                setCandidateStatus(candidate_data.status);
                 if (public_alert_level > 0) {
-                    const { validity: val, data_ts: dts, is_release_time: irt, release_triggers } = responseJson.data;
-                    console.log("release_triggers", release_triggers);
+                    const { validity: val, data_ts: dts, is_release_time: irt, release_triggers, all_validated: a_v } = responseJson.data;
+                    console.log("responseJson.data", responseJson.data);
                     const color = public_alert_level === 3 ? "red" : "#ee9d01";
+                    console.log("candidate_data.status", candidate_data.status);
                     setPublicAlert((
-                        <Typography variant="h2" color={color} className={[classes.label_paddings, classes.alert_level]}>
+                        <Typography variant="h2" style={{"color": `${color}`}} className={[classes.label_paddings, classes.alert_level]}>
                             {`Alert ${public_alert_level}`}
                         </Typography>
                     ));
@@ -83,8 +87,11 @@ function AlertValidation() {
                     setValidity(val);
                     setDataTs(dts);
                     setIsReleaseTime(irt);
+                    setEwiData(responseJson.data);
+                    setAllValidated(a_v);
                     return release_triggers;
                 } else {
+                    setAllValidated(true);
                     setPublicAlert((
                         <Typography variant="h2" color="#28a745" className={[classes.label_paddings, classes.alert_level]}>
                             {`Alert ${public_alert_level}`}
@@ -112,7 +119,7 @@ function AlertValidation() {
         // "#195770"
         let alert_validity = 0;
         let remark = "";
-        if (status === true) {
+        if (status) {
             alert("Alert valid!");
             alert_validity = 1;
             remark = "valid trigger";
@@ -141,7 +148,26 @@ function AlertValidation() {
             body: JSON.stringify(payload),
         }).then(response => response.json())
             .then(responseJson => {
-                console.log("responseJson", responseJson);
+                console.log("validate_trigger responseJson", responseJson);
+                updateAlertGen();
+            })
+            .catch((error) => {
+                console.error(error);
+            }
+            );
+    }
+    
+    const releaseEwi = (payload) => {
+        fetch(`${AppConfig.HOSTNAME}/api/alert_gen/public_alerts/insert_ewi`, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        }).then(response => response.json())
+            .then(responseJson => {
+                console.log("insert_ewi responseJson", responseJson);
                 // updateAlertGen();
             })
             .catch((error) => {
@@ -164,6 +190,7 @@ function AlertValidation() {
                     {/* TRIGGER TABLE  */}
                     {rows.map(row => {
                         console.log("ROW", row);
+                        const { is_invalid } = row;
 
                         return (
                             <Fragment>
@@ -190,7 +217,7 @@ function AlertValidation() {
 
                                 <Grid item xs={3}>
                                     <Fab variant="extended"
-                                        color="primary"
+                                        color={!is_invalid ? "secondary" : "primary"}
                                         aria-label="add" className={classes.button_fluid}
                                         onClick={() => { validateAlert(true, row) }}>
                                         Valid
@@ -198,7 +225,7 @@ function AlertValidation() {
                                 </Grid>
                                 <Grid item xs={3}>
                                     <Fab variant="extended"
-                                        color="primary"
+                                        color={is_invalid ? "secondary" : "primary"}
                                         aria-label="add" className={classes.button_fluid}
                                         onClick={() => { validateAlert(false, row) }}>
                                         Invalid
@@ -216,7 +243,7 @@ function AlertValidation() {
                         </Typography>
                         {public_alert}
                         {
-                            public_alert !== "Alert 0" && (
+                            ["alert", "extended", "lowering"].includes(candidate_status) && (
                                 <Fragment>
                                     <Typography variant="h5" className={[classes.label_paddings]}>
                                         Validity: {validity}
@@ -230,15 +257,16 @@ function AlertValidation() {
                     </Grid>
 
                     {
-                        public_alert !== "Alert 0" && (
+                        ["alert", "extended", "routine", "lowering"].includes(candidate_status) && (
+                        // is_release_time && (
                             <Grid item xs={12}>
                                 <Fab variant="extended"
                                     color="primary"
                                     aria-label="add" className={classes.button_fluid}
-                                    onClick={() => console.log("RELEASED")}
-                                    disabled={!all_validated}
+                                    onClick={() => releaseEwi(ewi_data)}
+                                    disabled={!all_validated && is_release_time}
                                     >
-                                    Release Alert
+                                    Release EWI
                                 </Fab>
                             </Grid>
                         )
