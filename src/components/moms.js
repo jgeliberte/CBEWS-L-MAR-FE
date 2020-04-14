@@ -4,8 +4,15 @@ import {
     Fab, makeStyles, Table,
     TableBody, TableCell, TableHead,
     TableRow, Dialog, DialogActions, DialogContent,
-    DialogContentText, DialogTitle, Button, Box, TextField, Typography
+    DialogContentText, DialogTitle, Button,
+    InputLabel, TextField, Typography, Box
 } from "@material-ui/core";
+import Autocomplete from '@material-ui/lab/Autocomplete';
+
+import MenuItem from '@material-ui/core/MenuItem';
+import CloudUploadIcon from '@material-ui/icons/CloudUpload';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
 
 import {
     MuiPickersUtilsProvider,
@@ -32,6 +39,15 @@ const useStyles = makeStyles(theme => ({
         width: '90%',
         padding: 10
     },
+    formControl: {
+        minWidth: 120,
+    },
+    selectSpacing: {
+        paddingTop: 5
+    },
+    selectEmpty: {
+        marginTop: theme.spacing(2),
+    },
 }));
 
 function MoMs() {
@@ -56,11 +72,30 @@ function MoMs() {
     const [openRaise, setOpenRaise] = useState(false);
     const [momsContainer, setMomsContainer] = useState([]);
 
+    const [selectedMomsFeatures, setSelectedMomsFeatures] = useState(0);
+    const [selectedFeatureName, setSelectedFeatureName] = useState(0);
+    const [selectedTS, setSelectedTS] = useState(moment(new Date()).format("YYYY-MM-DD HH:mm:ss"));
+    const [selectedRemarks, setSelectedRemarks] = useState('');
+    const [selectedReporter, setSelectedReporter] = useState('');
+    const [selectedLocation, setSelectedLocation] = useState('');
+    const [selectedAlertLevel, setSelectedAlertLevel] = useState(0);
+    const [selectedMomsID, setSelectedMomsID] = useState(0);
+    const [modificationDisabled, setModificationDisabled] = useState(false);
+    const [autoCompleteFeaturename, setAutoCompleteFeaturename] = useState('');
+
+    const [featureNameList, setFeatureNameList] = useState({
+        options: [{title: 'None selected',
+        instance_id: 0}],
+        getOptionLabel: (options) => options.title
+    });
+
+    const [featureDetails, setFeatureDetails] = useState([]);
+
     const [datatable, setDatatable] = useState([]);
 
-    useEffect(()=> {
+    useEffect(() => {
         initMoms();
-    },[]);
+    }, []);
     const initMoms = (site_code = 29) => {
         fetch(`${AppConfig.HOSTNAME}/api/ground_data/moms/fetch/${site_code}`, {
             method: 'GET',
@@ -72,40 +107,53 @@ function MoMs() {
             .then((responseJson) => {
                 let moms_container = [];
                 responseJson.data.forEach(element => {
-                    const [feature_id, instance_id, site_id, feature_name, 
+                    const [feature_id, instance_id, site_id, feature_name,
                         location, reporter, moms_id, observace_ts, reporter_id,
                         remarks, validator, op_trigger, feature_type, feature_desc] = element
                     let temp = {
-                    "instance_id":instance_id,
-                    "site_id":site_id,
-                    "feature_id":feature_id,
-                    "feature_name":feature_name,
-                    "location":location,
-                    "reporter":reporter,
-                    "moms_id":moms_id,
-                    "observance_ts":moment(observace_ts).format('YYYY-MM-DD HH:mm:ss'),
-                    "reporter_id":reporter_id,
-                    "remarks":remarks,
-                    "validator":validator,
-                    "op_trigger":op_trigger,
-                    "feature_type": feature_type,
-                    "feature_desc": feature_desc
+                        "instance_id": instance_id,
+                        "site_id": site_id,
+                        "feature_id": feature_id,
+                        "feature_name": feature_name,
+                        "location": location,
+                        "reporter": reporter,
+                        "moms_id": moms_id,
+                        "observance_ts": moment(observace_ts).format('YYYY-MM-DD HH:mm:ss'),
+                        "reporter_id": reporter_id,
+                        "remarks": remarks,
+                        "validator": validator,
+                        "op_trigger": op_trigger,
+                        "feature_type": feature_type,
+                        "feature_desc": feature_desc
                     }
                     moms_container.push(temp)
                 });
                 setMomsContainer(moms_container);
-                console.log(moms_container)
                 setDatatable(moms_container);
             })
             .catch((error) => {
                 console.log(error);
             }
-        );
+            );
     }
 
-    const handleClickOpenModalMoms = (data) => {
+    const handleMomsModification = (data) => {
         console.log(data)
+        let temp = {
+            instance_id: data.instance_id,
+            feature_name: data.feature_name
+        }
         setOpenForm(true);
+        setModificationDisabled(true);
+        setSelectedMomsFeatures(data.feature_id);
+        setSelectedFeatureName(temp);
+        setSelectedMomsID(data.moms_id)
+        setAutoCompleteFeaturename(data.feature_name);
+        setSelectedTS(data.observance_ts);
+        setSelectedRemarks(data.remarks);
+        setSelectedReporter(data.reporter);
+        setSelectedLocation(data.location);
+        setSelectedAlertLevel(data.op_trigger);
     };
 
     const handleCloseRaise = () => {
@@ -116,15 +164,151 @@ function MoMs() {
 
     const handleClickOpenForm = () => {
         setOpenForm(true);
+        setModificationDisabled(false);
     };
 
     const handleCloseForm = () => {
         setOpenForm(false);
     };
 
+    const handleChangeFeatureType = (feature_id) => {
+        setSelectedMomsFeatures(feature_id);
+        fetch(`${AppConfig.HOSTNAME}/api/ground_data/moms/fetch/feature/${feature_id}/29`, {
+            method: 'GET',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+            }
+          }).then((response) => response.json())
+            .then((responseJson) => {
+              if (responseJson.data.length != 0) {
+                let f_list = [];
+                let f_container = [];
+                
+                responseJson.data.forEach(element => {
+                    f_container.push(element);
+                    f_list.push({
+                        title: element.feature_name,
+                        instance_id:element.instance_id
+                    })
+                });
+                setFeatureNameList({
+                    options: f_list,
+                    getOptionLabel: (options) => {
+                        if (typeof options === 'string') {
+                            return options;
+                          }
+                          if (options.inputValue) {
+                            return options.inputValue;
+                          }
+                          return options.title;
+                    }
+                });
+                setFeatureDetails(f_container);
+              } else {
+                console.log("FAILED")
+              }
+            })
+            .catch((error) => {
+              console.log(error)
+            }
+          );
+    }
+
+    const handleFeatureNameChange = (feature_name) => {
+        let feature_details = {};
+        feature_details = featureDetails.find(o => o.feature_name === feature_name);
+        if (feature_details == null) {
+            feature_details = {
+                instance_id: 0,
+                feature_name: feature_name
+            }
+        }
+        setSelectedFeatureName(feature_details);
+    }
+
+    const submitNewMoms = () => {
+        let api_func = '';
+        let json = '';
+        if (modificationDisabled == true) {
+            api_func = 'update';
+            json = {
+                "datetime": selectedTS,
+                "feature_type": selectedMomsFeatures,
+                "feature_name": autoCompleteFeaturename,
+                "reporter": selectedReporter,
+                "location": selectedLocation,
+                "remarks": selectedRemarks,
+                "site_id": 29,
+                "user_id": 1,
+                "alert_level": selectedAlertLevel,
+                "moms_id": selectedMomsID
+            }
+        } else {
+            api_func = 'add';
+            json = {
+                "datetime": selectedTS,
+                "feature_type": selectedMomsFeatures,
+                "feature_name": selectedFeatureName.feature_name,
+                "reporter": selectedReporter,
+                "location": selectedLocation,
+                "remarks": selectedRemarks,
+                "site_id": 29,
+                "user_id": 1,
+                "alert_level": selectedAlertLevel
+            }
+        }
+
+        fetch(`${AppConfig.HOSTNAME}/api/ground_data/moms/${api_func}`, {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(json),
+          }).then((response) => response.json())
+            .then((responseJson) => {
+              if (responseJson.status == true) {
+                initMoms();
+                handleCloseForm();
+              } else {
+                console.log(responseJson)
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+            }
+        );
+    }
+
+    const deleteMoms = () => {
+        fetch(`${AppConfig.HOSTNAME}/api/ground_data/moms/delete`, {
+            method: 'DELETE',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({"moms_id": selectedMomsID}),
+          }).then((response) => response.json())
+            .then((responseJson) => {
+              if (responseJson.status == true) {
+                initMoms();
+                handleCloseForm();
+              } else {
+                console.log(responseJson)
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+            }
+        );
+    }
+
     return (
         <Fragment>
-
+            {
+                // Modal for raising
+            }
             <Dialog
                 open={openRaise}
                 onClose={handleCloseRaise}
@@ -135,70 +319,172 @@ function MoMs() {
                 <DialogContent>
                     <DialogContentText id="alert-dialog-description">
                         Are you sure you want to raise this alert?
-            </DialogContentText>
+                    </DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseRaise} color="primary">
                         Cancel
-            </Button>
+                    </Button>
                     <Button onClick={handleCloseRaise} color="primary" autoFocus>
                         Confirm
-            </Button>
+                    </Button>
                 </DialogActions>
             </Dialog>
-
+            {
+                // Modal for CRUD Moms
+            }
             <Dialog
                 open={openForm}
                 onClose={handleCloseForm}
+                fullWidth="sm"
+                maxWidth="sm"   
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description"
             >
                 <DialogTitle id="alert-dialog-title">Manifestation of Movements</DialogTitle>
                 <DialogContent>
-                <MuiPickersUtilsProvider utils={MomentUtils}>
-                    <DateTimePicker
-                        autoOk
-                        ampm={false}
-                        disableFuture
-                        format="YYYY-MM-DD HH:mm:ss"
-                        value={moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}
-                        onChange={(date) => { console.log(moment(date).format("YYYY-MM-DD HH:mm:ss")) }}
-                        label="Date time"
-                        fullWidth
-                    />
-                </MuiPickersUtilsProvider>
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        id="name"
-                        label="Feature"
-                        type="email"
-                        fullWidth
-                    />
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        id="name"
-                        label="Reporter"
-                        type="email"
-                        fullWidth
-                    />
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        id="name"
-                        label="Description"
-                        type="email"
-                        fullWidth
-                    />
+                    <Grid container spacing={2}>
+                        <Grid item xs={6}>
+                            <MuiPickersUtilsProvider utils={MomentUtils}>
+                                <DateTimePicker
+                                    autoOk
+                                    ampm={false}
+                                    disableFuture
+                                    disabled={modificationDisabled}
+                                    style={{paddingTop: 5}}
+                                    format="YYYY-MM-DD HH:mm:ss"
+                                    value={selectedTS}
+                                    onChange={(date) => { setSelectedTS(moment(date).format("YYYY-MM-DD HH:mm:ss")) }}
+                                    label="Date time"
+                                    fullWidth
+                                />
+                            </MuiPickersUtilsProvider>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <TextField
+                                autoFocus
+                                margin="dense"
+                                value={selectedReporter}
+                                id="reporter"
+                                label="Reporter"
+                                type="text"
+                                onChange={(e)=> { setSelectedReporter(e.target.value)}}
+                                fullWidth
+                            />
+                        </Grid>
+                        <Grid item xs={6}>
+                            <FormControl className={classes.formControl} fullWidth>
+                                <InputLabel shrink id="demo-simple-select-placeholder-label-label">
+                                    Feature type
+                                </InputLabel>
+                                <Select
+                                    labelId="demo-simple-select-placeholder-label-label"
+                                    id="demo-simple-select-placeholder-label"
+                                    disabled={modificationDisabled}
+                                    value={selectedMomsFeatures}
+                                    onChange={(e) => handleChangeFeatureType(e.target.value)}
+                                    displayEmpty
+                                    className={classes.selectEmpty}
+                                >   
+                                    <MenuItem value={0}><em>None selected</em></MenuItem>
+                                    <MenuItem value={1}>Crack</MenuItem>
+                                    <MenuItem value={2}>Scarp</MenuItem>
+                                    <MenuItem value={3}>Seepage</MenuItem>
+                                    <MenuItem value={4}>Ponding</MenuItem>
+                                    <MenuItem value={5}>Tilted/Split trees</MenuItem>
+                                    <MenuItem value={6}>Damaged structures</MenuItem>
+                                    <MenuItem value={7}>Slope failure</MenuItem>
+                                    <MenuItem value={8}>Bulgin/Depression</MenuItem>
+                                    <MenuItem value={9}><em>No landslide manifestation observed</em></MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <FormControl className={classes.formControl} fullWidth>
+                                <InputLabel shrink id="feature-name-label">
+                                    Feature name
+                                </InputLabel>
+                                <Autocomplete
+                                    {...featureNameList}
+                                    id="feature-name"
+                                    clearOnEscape
+                                    freeSolo
+                                    inputValue={autoCompleteFeaturename}
+                                    disabled={modificationDisabled}
+                                    onInputChange={(e,v) => {handleFeatureNameChange(v)}}
+                                    renderInput={(params) => (
+                                    <TextField {...params} margin="normal"/>
+                                    )}
+                                />
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <TextField
+                                autoFocus
+                                margin="dense"
+                                id="location"
+                                label="Location"
+                                type="text"
+                                value={selectedLocation}
+                                onChange={(e)=> {setSelectedLocation(e.target.value)}}
+                                fullWidth
+                            />
+                        </Grid>
+                        <Grid item xs={6}>
+                            <FormControl className={[classes.formControl, classes.selectSpacing]} fullWidth>
+                                <InputLabel shrink id="demo-simple-select-placeholder-label-label">
+                                    Alert level
+                                </InputLabel>
+                                <Select
+                                    labelId="demo-simple-select-placeholder-label-label"
+                                    disabled={modificationDisabled}
+                                    id="demo-simple-select-placeholder-label"
+                                    value={selectedAlertLevel}
+                                    onChange={(e) => setSelectedAlertLevel(e.target.value)}
+                                    displayEmpty
+                                    className={classes.selectEmpty}
+                                >   
+                                    <MenuItem value={0}><em>No significant movement</em></MenuItem>
+                                    <MenuItem value={2}>Significant movement observed</MenuItem>
+                                    <MenuItem value={3}>Critical movement observed</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>   
+                        <Grid item xs={12}>
+                            <TextField
+                                autoFocus
+                                margin="dense"
+                                id="desciption"
+                                label="Description"
+                                type="text"
+                                value={selectedRemarks}
+                                onChange={(e)=> {setSelectedRemarks(e.target.value)}}
+                                fullWidth
+                            />
+                        </Grid>
+                        <Grid item xs={12} align="center">
+                            <Fab variant="extended">
+                                <CloudUploadIcon style={{padding: 10}}/>
+                                Upload photo(s) of Manifestation of Movements
+                            </Fab>
+                        </Grid>
+                    </Grid>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseForm} color="primary">
                         Cancel
-            </Button>
-                    <Button onClick={handleCloseForm} color="primary" autoFocus>
+                    </Button>
+                    {
+                        modificationDisabled ? 
+                        <Button onClick={()=> {deleteMoms()}} color="primary">
+                            Delete
+                        </Button>
+                        :
+                        <div></div>
+                    }
+                    <Button onClick={()=> {submitNewMoms()}} color="primary" autoFocus>
                         Confirm
-            </Button>
+                    </Button>
                 </DialogActions>
             </Dialog>
 
@@ -214,30 +500,30 @@ function MoMs() {
                                         <TableCell>Feature name</TableCell>
                                         <TableCell>Location</TableCell>
                                         <TableCell>Reporter</TableCell>
-                                        <TableCell>Description</TableCell>
+                                        <TableCell>Remarks</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {
                                         datatable.length == 0 ?
-                                        <TableRow>
-                                            <Typography variant="h5" align="center">
-                                                No data available
+                                            <TableRow>
+                                                <Typography variant="h4" align="center">
+                                                    No data available
                                             </Typography>
-                                        </TableRow>
-                                        :
-                                        datatable.map(row => (
-                                            <TableRow key={row.observance_ts} onClick={()=> {handleClickOpenModalMoms(row)}} >
-                                                <TableCell component="th" scope="row">
-                                                    {row.observance_ts}
-                                                </TableCell>
-                                                <TableCell>{row.feature_type}</TableCell>
-                                                <TableCell>{row.feature_name}</TableCell>
-                                                <TableCell>{row.location}</TableCell>
-                                                <TableCell>{row.validator}</TableCell>
-                                                <TableCell>{row.feature_desc}</TableCell>
                                             </TableRow>
-                                        ))
+                                            :
+                                            datatable.map(row => (
+                                                <TableRow key={row.observance_ts} onClick={() => { handleMomsModification(row) }} >
+                                                    <TableCell component="th" scope="row">
+                                                        {row.observance_ts}
+                                                    </TableCell>
+                                                    <TableCell>{row.feature_type}</TableCell>
+                                                    <TableCell>{row.feature_name}</TableCell>
+                                                    <TableCell>{row.location}</TableCell>
+                                                    <TableCell>{row.validator}</TableCell>
+                                                    <TableCell>{row.remarks}</TableCell>
+                                                </TableRow>
+                                            ))
                                     }
                                 </TableBody>
                             </Table>
