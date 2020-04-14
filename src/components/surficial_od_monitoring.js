@@ -1,4 +1,4 @@
-import React, {Fragment} from 'react';
+import React, {Fragment, useEffect, useState} from 'react';
 import {
     Grid, Paper, Container,
     Fab, makeStyles, Table,
@@ -17,6 +17,8 @@ import {
     KeyboardDatePicker,
 } from '@material-ui/pickers';
 import MomentUtils from '@date-io/moment';
+import moment from "moment";
+import AppConfig from '../reducers/AppConfig';
 
 const tableStyle = makeStyles(theme => ({
     root: {
@@ -36,26 +38,59 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-function ODMonitoring() {
-    function createData(date_time, reporter, monitoring_reason, attachments) {
-        return { date_time, reporter, monitoring_reason, attachments};
-    }
+const default_vars = {
+    "is_lgu": 0,
+    "reason": "",
+    "reporter": "",
+    "site_id": 29,
+    "ts": moment().format("YYYY-MM-DD hh:mm:ss")
+}
 
-    const rows = [
-        createData('2019-08-08 07:30:00', 'John Geliberte', 'Malakas ang ulan', 'N/A'),
-        createData('2019-08-02 11:30:00', 'John Geliberte', 'Malakas ang ulan', 'N/A'),
-        createData('2019-07-29 11:30:00', 'John Geliberte', 'Lumindol ng mahina', 'N/A'),
-        createData('2019-07-20 15:30:00', 'John Geliberte', 'Malakas ang ulan', 'N/A'),
-        createData('2019-07-19 20:30:00', 'John Geliberte', 'Malakas ang ulan', 'N/A'),
-        createData('2019-06-20 23:00:00', 'John Geliberte', 'May gumuhong lupa', 'N/A'),
-        createData('2019-05-02 01:30:00', 'John Geliberte', 'Malakas ang ulan', 'N/A'),
-        createData('2019-04-01 02:30:00', 'John Geliberte', 'Malakas ang ulan', 'N/A'),
-        createData('2019-01-30 02:30:00', 'John Geliberte', 'Lumindol ng malakas', 'N/A')
-    ];
+function ODMonitoring() {
     const dt_classes = tableStyle();
     const classes = useStyles();
 
     const [open, setOpen] = React.useState(false);
+    const [rows, setRows] = useState([]);
+    const [openRaise, setOpenRaise] = React.useState(false);
+    const [od_input, setODInput] = useState(default_vars);
+
+    useEffect(() => {
+        fetchODData();
+    }, []);
+
+    function fetchODData() {
+        console.log("FETCHING");
+        fetch(`${AppConfig.HOSTNAME}/api/ground_data/on_demand/fetch/${AppConfig.CONFIG.site_id}`, {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            }
+        }).then(response => response.json()
+        ).then(response => {
+            const { message } = response;
+            if (response.ok) {
+                console.log("response", response);
+                setRows(response.data);
+            }
+        }).catch(error => console.error(error));
+    }
+
+    const handleChangeValue = key => event => {
+        const { value } = event.target;
+        setODInput({
+            ...od_input,
+            [key]: value
+        });
+    };
+
+    const dateHandler = data => {
+        setODInput({
+            ...od_input,
+            ts: moment(data).format("YYYY-MM-DD hh:mm:ss")
+        });
+    };
 
     const handleClickOpen = () => {
       setOpen(true);
@@ -65,7 +100,6 @@ function ODMonitoring() {
       setOpen(false);
     };
 
-    const [openRaise, setOpenRaise] = React.useState(false);
 
     const handleClickOpenRaise = () => {
       setOpenRaise(true);
@@ -75,6 +109,22 @@ function ODMonitoring() {
       setOpenRaise(false);
     };
 
+    const handleSubmit = () => {
+        fetch(`${AppConfig.HOSTNAME}/api/ground_data/on_demand/add`, {
+            method: 'POST',
+            body: od_input,
+        }).then(response => response.json())
+            .then(response => {
+                const { message } = response;
+                if (response.ok) {
+                    console.log(response);
+                    handleClose();
+                    setODInput(default_vars);
+                }
+                alert(message);
+            })
+            .catch(error => console.error(error));
+    }
 
     return (
         <Fragment>
@@ -88,18 +138,18 @@ function ODMonitoring() {
                                     <TableCell>Date and time</TableCell>
                                     <TableCell>Reporter</TableCell>
                                     <TableCell>Reason for Monitoring</TableCell>
-                                    <TableCell>Attachments</TableCell>
+                                    {/* <TableCell>Attachments</TableCell> */}
                                 </TableRow>
                             </TableHead>
                             <TableBody>
                                 {rows.map(row => (
-                                    <TableRow key={row.date_time} onClick={handleClickOpenRaise}>
+                                    <TableRow key={row.ts} onClick={handleClickOpenRaise}>
                                         <TableCell component="th" scope="row">
-                                            {row.date_time}
+                                            {row.ts}
                                         </TableCell>
-                                        <TableCell>{row.reporter}</TableCell>
-                                        <TableCell>{row.monitoring_reason}</TableCell>
-                                        <TableCell>{row.attachments}</TableCell>
+                                        <TableCell>{row.is_llmc}</TableCell>
+                                        <TableCell>{row.reason}</TableCell>
+                                        {/* <TableCell>{row.attachments}</TableCell> */}
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -108,7 +158,7 @@ function ODMonitoring() {
                 </Grid>
                 <Grid item xs={12}>
                     <Box>
-                        * click row to raise moms.
+                        * click row to raise on demand.
                     </Box>
                 </Grid>
                 <Grid container align="center" style={{ paddingTop: 20 }}>
@@ -157,6 +207,8 @@ function ODMonitoring() {
                         'aria-label': 'change date',
                     }}
                     fullWidth
+                    value={od_input.ts}
+                    onChange={dateHandler}
                 />
             </MuiPickersUtilsProvider>
              <TextField
@@ -166,6 +218,8 @@ function ODMonitoring() {
                 label="Reporter"
                 type="email"
                 fullWidth
+                value={od_input.reporter}
+                onChange={handleChangeValue("reporter")}
             />
              <TextField
                 autoFocus
@@ -174,21 +228,24 @@ function ODMonitoring() {
                 label="Reason for monitoring"
                 type="email"
                 fullWidth
+                value={od_input.reason}
+                onChange={handleChangeValue("reason")}
             />
-             <TextField
+             {/* <TextField
                 autoFocus
                 margin="dense"
                 id="name"
                 label="Attachment"
                 type="email"
                 fullWidth
-            />
+                onChange={handleChangeValue("attachm")}
+            /> */}
             </DialogContent>
             <DialogActions>
             <Button onClick={handleClose} color="primary">
                 Cancel
             </Button>
-            <Button onClick={handleClose} color="primary">
+            <Button onClick={handleSubmit} color="primary">
                 Confirm
             </Button>
             </DialogActions>

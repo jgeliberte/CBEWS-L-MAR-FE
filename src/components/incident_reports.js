@@ -325,7 +325,6 @@ function IncidentReports() {
                     setReportAttachments(response.data);
                     setOpen(true);
                 }
-                alert(message);
             }).catch(error => console.error(error));
         } else setConfirmOpen(true);
     };
@@ -346,7 +345,10 @@ function IncidentReports() {
                     <Grid item xs={6}>
 
                         <Grid container>
-                            <PDFPreviewer />
+                            <PDFPreviewer
+                                data={rows}
+                                dataType="reports"
+                            />
                             <Grid item xs={12}>
                                 <Grid container align="center" style={{ paddingTop: 20 }}>
                                     <Grid item xs={3} />

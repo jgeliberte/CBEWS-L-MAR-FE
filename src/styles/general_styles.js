@@ -23,8 +23,14 @@ const useStyles = makeStyles(theme => ({
     label_paddings: {
         padding: 10
     },
-    alert_level: {
+    alert_level_0: {
+        color: 'green'
+    },
+    alert_level_1_2: {
         color: '#f09e01'
+    },
+    alert_level_3: {
+        color: 'red'
     },
     header: {
         margin: 50

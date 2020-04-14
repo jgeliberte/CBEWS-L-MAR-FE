@@ -62,25 +62,25 @@ function AttachmentsGridList(props) {
                         Attachments
                     </ListSubheader>
                 </GridListTile>
-                {tileData.map((tile) => {
-                    const temp = `${tile.value}${tile.title}`.split("html/");
-                    const temp2 = `${AppConfig.HOST_DIR}${temp[1]}`
-                    return (
-                        <GridListTile key={tile.value}>
-                            <img src={temp2} alt={tile.title} />
-                            <GridListTileBar
-                                title={tile.title}
-                                subtitle={<span>Path: {tile.value}</span>}
-                                actionIcon={
-                                    <IconButton onClick={handleDownloadInt(temp2)} aria-label={`File Type ${tile.sub_title}`} className={classes.icon}>
-                                        <InfoIcon />
-                                    </IconButton>
-                                }
-                            />
-                        </GridListTile>
-                    )
-                }
-                )
+                {
+                    tileData.map((tile) => {
+                        const temp = `${tile.value}${tile.title}`.split("html/");
+                        const temp2 = `${AppConfig.HOST_DIR}${temp[1]}`
+                        return (
+                            <GridListTile key={tile.value}>
+                                <img src={temp2} alt={tile.title} />
+                                <GridListTileBar
+                                    title={tile.title}
+                                    subtitle={<span>Path: {tile.value}</span>}
+                                    actionIcon={
+                                        <IconButton onClick={handleDownloadInt(temp2)} aria-label={`File Type ${tile.sub_title}`} className={classes.icon}>
+                                            <InfoIcon />
+                                        </IconButton>
+                                    }
+                                />
+                            </GridListTile>
+                        )
+                    })
                 }
             </GridList>
         </div>
