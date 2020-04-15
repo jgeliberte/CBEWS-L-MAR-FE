@@ -14,8 +14,6 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 
 import {
     MuiPickersUtilsProvider,
-    KeyboardDatePicker,
-    KeyboardDateTimePicker,
     DateTimePicker
 } from '@material-ui/pickers';
 import MomentUtils from '@date-io/moment';
@@ -344,7 +342,6 @@ function SurficialMarker() {
               console.log(error);
             }
           );
-
     }
 
     return (
