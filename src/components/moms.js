@@ -216,6 +216,7 @@ function MoMs() {
     }
 
     const handleFeatureNameChange = (feature_name) => {
+        setAutoCompleteFeaturename(feature_name)
         let feature_details = {};
         feature_details = featureDetails.find(o => o.feature_name === feature_name);
         if (feature_details == null) {
