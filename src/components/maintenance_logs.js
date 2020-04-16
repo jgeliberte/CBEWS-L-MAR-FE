@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { Fragment, useState } from 'react';
 import {
     Container, Grid, Fab, Paper, Table,
     TableBody, TableCell, TableHead, TableRow, TextField,
@@ -84,8 +84,6 @@ const defaultVars = {
 
 
 function MaintenanceLogs() {
-    const img = imageStyle();
-    const summary = summaryStyle();
     const classes = generalStyle();
 
     const [range_start, setRangeStart] = useState("");
@@ -313,7 +311,6 @@ function MaintenanceLogs() {
                 }
             }).then(response => response.json()
             ).then(response => {
-                const { message } = response;
                 if (response.ok) {
                     console.log("response", response);
                     setLogAttachments(response.data);

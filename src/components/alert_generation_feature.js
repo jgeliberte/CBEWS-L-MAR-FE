@@ -71,7 +71,7 @@ function AlertValidation() {
                 console.log("get_mar_alert_validation_data responseJson", responseJson);
                 const { public_alert_level, as_of_ts, candidate_data } = responseJson.data;
                 const as_of_ts_format = moment(as_of_ts).format("H:mm A, D MMMM YYYY, dddd");
-                let rel_trig;
+                let rel_trig = [];
                 setCandidateStatus(candidate_data.status);
                 if (public_alert_level > 0) {
                     const { validity: val, data_ts: dts, is_release_time: irt, release_triggers, all_validated: a_v } = responseJson.data;
@@ -87,9 +87,13 @@ function AlertValidation() {
                     setValidity(val);
                     setDataTs(dts);
                     setIsReleaseTime(irt);
-                    setEwiData(responseJson.data);
+                    setEwiData({
+                        ...responseJson.data,
+                        site_code: responseJson.data.candidate_data.site_code,
+                        site_id: responseJson.data.candidate_data.site_id
+                    });
                     setAllValidated(a_v);
-                    return release_triggers;
+                    rel_trig = release_triggers;
                 } else {
                     setAllValidated(true);
                     setPublicAlert((
@@ -99,8 +103,15 @@ function AlertValidation() {
                     ));
                     setAsOfTs(as_of_ts_format);
                     rel_trig = [];
-                    return rel_trig;
                 }
+
+                if (candidate_data.status === "no_alert") setPublicAlert(
+                    <Typography variant="h2" color="#28a745" className={[classes.label_paddings, classes.alert_level]}>
+                        NO CANDIDATE AS OF NOW
+                    </Typography>
+                )
+
+                return rel_trig;
             })
             .then(temp => get_charts(temp))
             .then(release_triggers => {
@@ -158,6 +169,7 @@ function AlertValidation() {
     }
     
     const releaseEwi = (payload) => {
+        console.log("payload", payload);
         fetch(`${AppConfig.HOSTNAME}/api/alert_gen/public_alerts/insert_ewi`, {
             method: 'POST',
             headers: {
@@ -168,7 +180,8 @@ function AlertValidation() {
         }).then(response => response.json())
             .then(responseJson => {
                 console.log("insert_ewi responseJson", responseJson);
-                // updateAlertGen();
+                alert("Inserted");
+                updateAlertGen();
             })
             .catch((error) => {
                 console.error(error);
@@ -195,20 +208,20 @@ function AlertValidation() {
                         return (
                             <Fragment>
                                 <Grid item xs={3}>
-                                    <Typography variant="h7" align="left">Date Time of Alert: </Typography>
-                                    <Typography variant="h6" align="left">{row.date_time}</Typography>
+                                    <Typography variant="h6" align="left">Date Time of Alert: </Typography>
+                                    <Typography variant="h5" align="left">{row.date_time}</Typography>
                                 </Grid>
                                 <Grid item xs={2}>
-                                    <Typography variant="h7" align="left">Trigger: </Typography>
-                                    <Typography variant="h6" align="left">{row.trigger}</Typography>
+                                    <Typography variant="h6" align="left">Trigger: </Typography>
+                                    <Typography variant="h5" align="left">{row.trigger}</Typography>
                                 </Grid>
                                 <Grid item xs={2}>
-                                    <Typography variant="h7" align="left">Data Source:</Typography>
-                                    <Typography variant="h6" align="left">{row.data_source}</Typography>
+                                    <Typography variant="h6" align="left">Data Source:</Typography>
+                                    <Typography variant="h5" align="left">{row.data_source}</Typography>
                                 </Grid>
                                 <Grid item xs={5}>
-                                    <Typography variant="h7" align="left">Description:</Typography>
-                                    <Typography variant="h6" align="left">{row.description}</Typography>
+                                    <Typography variant="h6" align="left">Description:</Typography>
+                                    <Typography variant="h5" align="left">{row.description}</Typography>
                                 </Grid>
 
                                 {row.chart}
@@ -243,7 +256,7 @@ function AlertValidation() {
                         </Typography>
                         {public_alert}
                         {
-                            ["alert", "extended", "lowering"].includes(candidate_status) && (
+                            ["new", "on-going", "extended", "lowering"].includes(candidate_status) && (
                                 <Fragment>
                                     <Typography variant="h5" className={[classes.label_paddings]}>
                                         Validity: {validity}
@@ -257,14 +270,14 @@ function AlertValidation() {
                     </Grid>
 
                     {
-                        ["alert", "extended", "routine", "lowering"].includes(candidate_status) && (
+                        ["new", "on-going", "extended", "routine", "lowering"].includes(candidate_status) && (
                         // is_release_time && (
                             <Grid item xs={12}>
                                 <Fab variant="extended"
                                     color="primary"
                                     aria-label="add" className={classes.button_fluid}
                                     onClick={() => releaseEwi(ewi_data)}
-                                    disabled={!all_validated && is_release_time}
+                                    disabled={!all_validated || !is_release_time}
                                     >
                                     Release EWI
                                 </Fab>

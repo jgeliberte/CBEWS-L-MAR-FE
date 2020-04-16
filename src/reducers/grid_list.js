@@ -1,9 +1,7 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
-    Grid, Paper, Container,
-    Fab, makeStyles, Box, Typography
+    Grid, Fab, makeStyles, Box, Typography
 } from "@material-ui/core";
-import { borderTop, borderBottom, borderColor, borderRadius } from '@material-ui/system';
 import AppConfig from "../reducers/AppConfig";
 
 const customGridStyle = makeStyles(theme => ({
@@ -33,7 +31,6 @@ function CustomGridList(props) {
 
     data.forEach((item)=> {
         const handler_type = type === null || typeof type === "undefined" ? null : type;
-        const downloadClickHandler = handler_type === "cra_list" ? handleDownload() : () => console.log("clicked download");
         
         ret_val.push(
             <Grid item xs={12}>
