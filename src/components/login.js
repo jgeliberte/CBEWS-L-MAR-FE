@@ -1,4 +1,4 @@
-import React, { useState, useRef, Fragment } from 'react';
+import React, { useState, useRef, Fragment, useEffect } from 'react';
 import { LogoCenter, AppTitle } from '../reducers/index';
 import { notificationStyle } from '../styles/notification_styles';
 import Container from '@material-ui/core/Container';
@@ -10,15 +10,23 @@ import MuiAlert from '@material-ui/lab/Alert';
 import { Link } from 'react-router-dom';
 import { withRouter } from 'react-router-dom'
 import AppConfig from "../reducers/AppConfig";
+import { useCookies } from 'react-cookie';
 
 function Login(props) {
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [cookies, setCookie] = useCookies(['credentials']);
 
     const [loginNotif, setLoginNotif] = useState(false);
     
     const loginSeverityRef = useRef();
+
+    useEffect(()=> {
+        if (cookies.credentials != null) {
+            props.history.push(`/dashboard`);
+        }
+    },[]);
 
     const handleClose = (event, reason) => {
         if (reason === 'clickaway') {
@@ -45,6 +53,7 @@ function Login(props) {
         }).then((response) => response.json())
             .then((responseJson) => {
                 if (responseJson.status == true) {
+                    setCookie('credentials', responseJson.user_data, { path: '/' });
                     loginSeverityRef.current = (<Alert onClose={handleClose} severity="success">{ responseJson.message }</Alert>)
                     props.history.push(`/dashboard`);
                 } else {
