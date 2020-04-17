@@ -9,6 +9,7 @@ import {
     Home,
     CRA
 } from '../components/menu'
+import CookiesHandler from '../reducers/CookiesHandler';
 
 function handleContent(app_key) {
     let body_content = []
@@ -47,7 +48,10 @@ function handleContent(app_key) {
 function Content({app_key}) {
     let content = handleContent(app_key)
     return (
-        content
+        <div>
+            <CookiesHandler />
+            {content}
+        </div>
     )
 }
 
