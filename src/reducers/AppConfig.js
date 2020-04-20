@@ -6,8 +6,8 @@ const AppConfig = {
         },
     HOSTNAME: 'http://localhost:5000',
     HOST_DIR: 'http://localhost/',
-    UMINGAN_DIR: '/var/www/html/CBEWSL/UMINGAN',
-    MARIRONG_DIR: '/var/www/html/CBEWSL/MARIRONG'
+    UMINGAN_DIR: '../client-cbewsl/UMINGAN',
+    MARIRONG_DIR: '../client-cbewsl/MARIRONG'
 };
 
 export default AppConfig

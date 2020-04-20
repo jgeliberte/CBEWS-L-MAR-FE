@@ -50,6 +50,16 @@ const useStyles = makeStyles(theme => ({
         marginRight: theme.spacing(1),
         width: '100%',
     },
+    thumbnail : {
+        flexWrap: 'nowrap',
+        transform: 'translateZ(0)',
+    },
+    gridTitle: {
+        color: '#fffffff',
+      },
+    thumbnailTitle: {
+        background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0) 100%)'
+    }
 }));
 
 const tableStyle = makeStyles(theme => ({
