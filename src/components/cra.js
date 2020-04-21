@@ -12,6 +12,9 @@ import Input from '@material-ui/core/Input';
 import Helpers from '../Helpers';
 import AppConfig from "../reducers/AppConfig";
 
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert from '@material-ui/lab/Alert';
+
 function renameFileType(type) {
     const file_types = {
         "txt": "Text",
@@ -33,12 +36,20 @@ function formatCRAData (data) {
     }))
 }
 
+function Alert(props) {
+	return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
+
 function CommunityRiskAssessment(props) {
     const { classes } = props;
     const [open, setOpen] = useState(false);
     const [cra_data, setCraData] = useState([]);
     const [file_to_upload, setFileToUpload] = useState(null);
     const [filename, setFilename] = useState("");
+    
+    const [notifStatus, setNotifStatus] = useState('success');
+	const [openNotif, setOpenNotif] = useState(false);
+	const [notifText, setNotifText] = useState('');
 
     const handleClickOpen = () => {
       setOpen(true);
@@ -65,6 +76,13 @@ function CommunityRiskAssessment(props) {
             if (response.ok) {
                 handleClose();
                 setFileToUpload(null);
+                setOpenNotif(true);
+                setNotifStatus("success");
+                setNotifText("Successfully uploaded new community risk assessment file.");
+            } else {
+                setOpenNotif(true);
+                setNotifStatus("error");
+                setNotifText("Error uploading community risk assessment file.");
             }
         })
         .catch(error => console.error(error));
@@ -124,11 +142,19 @@ function CommunityRiskAssessment(props) {
                     />
                  </Grid>
                  <Grid item xs={2}>
-                    <Input
-                        name="file"
-                        type="file"
-                        onChange={handleFileSelection}
+                 <input
+                    accept="*"
+                    style={{ display: 'none' }}
+                    id="raised-button-file"
+                    multiple
+                    type="file"
+                    onChange={handleFileSelection}
                     />
+                    <label htmlFor="raised-button-file">
+                        <Button variant="raised" component="span" color="primary">
+                            Browse
+                        </Button>
+                    </label>
                  </Grid>
              </Grid>
             </DialogContent>
@@ -143,6 +169,15 @@ function CommunityRiskAssessment(props) {
             </Button>
             </DialogActions>
         </Dialog>
+        <Snackbar open={openNotif} 
+            autoHideDuration={3000} 
+            onClose={() => {setOpenNotif(false)}}
+            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            key={'top,right'}>
+            <Alert onClose={() => {setOpenNotif(false)}} severity={notifStatus}>
+                {notifText}
+            </Alert>
+        </Snackbar>
         </Fragment>
     )
 }

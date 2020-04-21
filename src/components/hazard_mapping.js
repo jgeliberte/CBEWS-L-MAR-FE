@@ -12,11 +12,14 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
-import Card from '@material-ui/core/Card';
-import CardActionArea from '@material-ui/core/CardActionArea';
-import CardActions from '@material-ui/core/CardActions';
-import CardMedia from '@material-ui/core/CardMedia';
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert from '@material-ui/lab/Alert';
+
 import AppConfig from '../reducers/AppConfig';
+
+function Alert(props) {
+	return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 
 function HazardMapping() {
     const classes = useStyles();
@@ -25,6 +28,10 @@ function HazardMapping() {
     const [mapPreview, setMapPreview] = useState([]);
     const [fileToUpload, setFileToUpload] = useState();
     const [filename, setFilename] = useState('');
+
+    const [notifStatus, setNotifStatus] = useState('success');
+	const [openNotif, setOpenNotif] = useState(false);
+	const [notifText, setNotifText] = useState('');
 
     const handleClickOpen = () => {
         setOpen(true);
@@ -53,7 +60,7 @@ function HazardMapping() {
             .catch((error) => {
                 console.log(error);
             }
-            );
+        );
     }
 
 
@@ -85,7 +92,6 @@ function HazardMapping() {
     const handleUpload = () => {
         const data = new FormData();
         data.append("file", fileToUpload);
-
         fetch(`${AppConfig.HOSTNAME}/api/cra/hazard_maps/upload`, {
             method: 'POST',
             body: data,
@@ -95,9 +101,13 @@ function HazardMapping() {
                     handleClose();
                     setFileToUpload(null);
                     setFilename("");
-                    alert("Successfully uploaded new hazard map")
+                    setOpenNotif(true);
+                    setNotifStatus("success");
+                    setNotifText("Successfully uploaded new hazard map");
                 } else {
-                    alert("Error uploading new hazard map")
+                    setOpenNotif(true);
+                    setNotifStatus("error");
+                    setNotifText("Error uploading new hazard map");
                 }
             })
             .catch(error => console.error(error));
@@ -180,23 +190,32 @@ function HazardMapping() {
                                 type="file"
                                 onChange={handleFileSelection}
                                 />
-                                <label htmlFor="raised-button-file">
+                            <label htmlFor="raised-button-file">
                                 <Button variant="raised" component="span" color="primary">
                                     Browse
                                 </Button>
-                                </label>
+                            </label>
                         </Grid>
                     </Grid>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleClose} color="primary">
                         Cancel
-            </Button>
+                    </Button>
                     <Button onClick={handleUpload} color="primary">
                         Confirm
-            </Button>
+                    </Button>
                 </DialogActions>
             </Dialog>
+            <Snackbar open={openNotif} 
+				autoHideDuration={3000} 
+				onClose={() => {setOpenNotif(false)}}
+				anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+				key={'top,right'}>
+				<Alert onClose={() => {setOpenNotif(false)}} severity={notifStatus}>
+					{notifText}
+				</Alert>
+			</Snackbar>
         </Fragment>
 
     )

@@ -6,8 +6,8 @@ const AppConfig = {
         },
     HOSTNAME: 'http://localhost:5000',
     HOST_DIR: 'http://localhost/',
-    UMINGAN_DIR: '../client-cbewsl/UMINGAN',
-    MARIRONG_DIR: '../client-cbewsl/MARIRONG'
+    UMINGAN_DIR: '/home/jgeliberte/codes/cbews-l-mar-fe/src/client-cbewsl/UMINGAN',
+    MARIRONG_DIR: '/home/jgeliberte/codes/cbews-l-mar-fe/src/client-cbewsl/MARIRONG'
 };
 
 export default AppConfig
