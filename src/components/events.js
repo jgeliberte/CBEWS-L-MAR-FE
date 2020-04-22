@@ -15,7 +15,12 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Slide from '@material-ui/core/Slide';
 
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert from '@material-ui/lab/Alert';
 
+function Alert(props) {
+	return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 
 function Events() {
     const [template_key, setKey] = useState('');
@@ -34,6 +39,10 @@ function Events() {
     const [openDialog, setOpenDialog] = useState(false);
     const [dialogText, setDialogText] = useState('');
     const [dialogCommand, setDialogCommand] = useState('save');
+
+    const [notifStatus, setNotifStatus] = useState('success');
+	const [openNotif, setOpenNotif] = useState(false);
+	const [notifText, setNotifText] = useState('');
 
     const classes = useStyles();
     const newTagOption = {
@@ -109,13 +118,19 @@ function Events() {
     const modifyTemplate = () => {
         let req_url = '';
         let method = '';
+        let success_message = '';
+        let fail_message = '';
 
         if (isNew == true) {
             req_url = `${AppConfig.HOSTNAME}/api/events/template/add`;
             method = 'POST';
+            success_message = 'Successfully added new message template';
+            fail_message = 'Failed to add message template. Please check your network connectivity.'
         } else {
             req_url = `${AppConfig.HOSTNAME}/api/events/template/update`;   
             method = 'PATCH';
+            success_message = 'Successfully update message template';
+            fail_message = 'Failed to update message template. Please check your network connectivity.'
         }
 
         if (tagHelperText.length == 0 && templateHelperText.length == 0) {
@@ -136,8 +151,13 @@ function Events() {
                 .then((responseJson) => {
                     if (responseJson.status == true) {
                         initTemplates();
+                        setOpenNotif(true);
+                        setNotifStatus("success");
+                        setNotifText(success_message);
                     } else {
-                        console.log("ERROR");
+                        setOpenNotif(true);
+                        setNotifStatus("error");
+                        setNotifText(fail_message);
                     }
                 })
                 .catch((error) => {
@@ -164,8 +184,14 @@ function Events() {
                 if (responseJson.status == true) {
                     initTemplates();
                     handleClose();
+                    setOpenNotif(true);
+                    setNotifStatus("success");
+                    setNotifText("Successfully deleted a message template.");
                 } else {
-                    console.log("error dialog")
+                    handleClose();
+                    setOpenNotif(true);
+                    setNotifStatus("error");
+                    setNotifText("Failed to delete message template. Please check your network connectivity.");
                 }
             })
             .catch((error) => {
@@ -352,8 +378,6 @@ function Events() {
             </Container>
             <Dialog
                 open={openDialog}
-                TransitionComponent={Transition}
-                keepMounted
                 onClose={handleClose}
                 aria-labelledby="alert-dialog-slide-title"
                 aria-describedby="alert-dialog-slide-description"
@@ -365,7 +389,7 @@ function Events() {
                 </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                <Button onClick={dialogConfirm()} color="primary">
+                <Button onClick={() => {dialogConfirm()}} color="primary">
                     Confirm
                 </Button>
                 <Button onClick={handleClose} color="primary">
@@ -373,6 +397,15 @@ function Events() {
                 </Button>
                 </DialogActions>
             </Dialog>
+            <Snackbar open={openNotif} 
+				autoHideDuration={3000} 
+				onClose={() => {setOpenNotif(false)}}
+				anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+				key={'top,right'}>
+				<Alert onClose={() => {setOpenNotif(false)}} severity={notifStatus}>
+					{notifText}
+				</Alert>
+			</Snackbar>
         </Fragment>
     )
 }
