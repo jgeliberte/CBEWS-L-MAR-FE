@@ -21,6 +21,13 @@ import {
 import MomentUtils from '@date-io/moment';
 import moment from 'moment';
 
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert from '@material-ui/lab/Alert';
+
+function Alert(props) {
+	return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
+
 function CapacityAndVulerability() {
     function createData(date_time, resource, quantity, status_description, owner, in_charge, updater) {
         return { date_time, resource, quantity, status_description, owner, in_charge, updater };
@@ -50,6 +57,10 @@ function CapacityAndVulerability() {
     const [updater, setUpdater] = useState('');
     const [cmd, setCmd] = useState('add');
 
+    const [notifStatus, setNotifStatus] = useState('success');
+	const [openNotif, setOpenNotif] = useState(false);
+    const [notifText, setNotifText] = useState('');
+    
     useEffect(()=> {
         initCaV();
     },[]);
@@ -135,12 +146,19 @@ function CapacityAndVulerability() {
                     setOpen(false);
                     setOpenDelete(false);
                     resetState();
+                    setOpenNotif(true);
+                    setNotifStatus("success");
+                    setNotifText("Successfully deleted capacity and vulnerability data.");
                 } else {
-                    console.log(responseJson)
+                    setOpenNotif(true);
+                    setNotifStatus("error");
+                    setNotifText("Failed to delete capacity and vunerability data. Please contact the developers or file a bug report");
                 }
             })
             .catch((error) => {
-                console.log(error);
+                setOpenNotif(true);
+                setNotifStatus("error");
+                setNotifText(`ERROR: ${error}`);
             }
         );
     }
@@ -187,12 +205,24 @@ function CapacityAndVulerability() {
                 if (responseJson.status === true) {
                     initCaV();
                     handleClose();
+                    setOpenNotif(true);
+                    setNotifStatus("success");
+                    if (cmd=="add") {
+                        setNotifText("Successfully added new capacity and vulnerability data.");
+                    } else {
+                        setNotifText("Successfully updated capacity and vulnerability data.");
+                    }
+                    
                 } else {
-                    console.log(responseJson)
+                    setOpenNotif(true);
+                    setNotifStatus("error");
+                    setNotifText("Failed to update capacity and vunerability data. Please review your updates.");
                 }
             })
             .catch((error) => {
-                console.log(error);
+                setOpenNotif(true);
+                setNotifStatus("error");
+                setNotifText(`ERROR: ${error}`);
             }
         );
     }
@@ -397,7 +427,15 @@ function CapacityAndVulerability() {
             </DialogActions>
         </Dialog>
 
-
+        <Snackbar open={openNotif} 
+            autoHideDuration={3000} 
+            onClose={() => {setOpenNotif(false)}}
+            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            key={'top,right'}>
+            <Alert onClose={() => {setOpenNotif(false)}} severity={notifStatus}>
+                {notifText}
+            </Alert>
+        </Snackbar>
     </Fragment>
     )
 }

@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import {
 	Avatar, Button, CssBaseline,
 	TextField, Link, Grid, Box,
@@ -6,6 +6,8 @@ import {
 } from "@material-ui/core";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import Typography from "@material-ui/core/Typography";
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert from '@material-ui/lab/Alert';
 import { makeStyles } from "@material-ui/core/styles";
 import MomentUtils from '@date-io/moment';
 import moment from "moment";
@@ -28,6 +30,10 @@ function Copyright() {
 			{"."}
 		</Typography>
 	);
+}
+
+function Alert(props) {
+	return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
 const useStyles = makeStyles(theme => ({
@@ -67,7 +73,10 @@ const form_default = {
 export default function SignUp(props) {
 	const classes = useStyles();
 	
-	const [formData, setFormData] = React.useState(form_default);
+	const [formData, setFormData] = useState(form_default);
+	const [notifStatus, setNotifStatus] = useState('success');
+	const [openNotif, setOpenNotif] = useState(false);
+	const [notifText, setNotifText] = useState('');
 
 	const handleFormChanges = key => event => {
 		let value = null;
@@ -81,17 +90,26 @@ export default function SignUp(props) {
 	};
 
 	const registerCredentials = () => {
-		console.log("form_data", formData);
 		formData["birthdate"] = moment(formData["birthdate"]).format("YYYY-MM-DD");
-
 		fetch(`${AppConfig.HOSTNAME}/api/accounts/signup`, {
 			headers: { "Content-Type": "application/json; charset=utf-8" },
 			method: 'POST',
 			body: JSON.stringify(formData)
 		})
-		.then(response => {
-			if (response.status === 200) props.history.push(`/dashboard`);
-		})
+		.then(response => response.json())
+		.then((responseJson => {
+			if (responseJson.status == true) {
+				setOpenNotif(true);
+				setNotifText('Successfully created an account. Pleases wait..');
+				setTimeout(()=> {
+					props.history.push(`/`);
+				},3000)
+			} else {
+				setOpenNotif(true);
+				setNotifStatus("error");
+				setNotifText('Failed to create an account. Please review the signup form.');
+			}
+		}))
 		.catch(error => {
 			console.error(error);
 		});
@@ -232,6 +250,15 @@ export default function SignUp(props) {
 			<Box mt={5}>
 				<Copyright />
 			</Box>
+			<Snackbar open={openNotif} 
+				autoHideDuration={3000} 
+				onClose={() => {setOpenNotif(false)}}
+				anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+				key={'top,right'}>
+				<Alert onClose={() => {setOpenNotif(false)}} severity={notifStatus}>
+					{notifText}
+				</Alert>
+			</Snackbar>
 		</Container>
 	);
 }
