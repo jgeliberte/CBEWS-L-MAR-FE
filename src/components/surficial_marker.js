@@ -369,12 +369,7 @@ function SurficialMarker() {
             }),
           }).then((response) => response.json())
             .then((responseJson) => {
-<<<<<<< HEAD
-              if (responseJson.status === true) {
-                console.log(responseJson);
-=======
               if (responseJson.status == true) {
->>>>>>> f875c5bd3fb69156a1736e77dbdd13d2802af181
                 initSurficialMarker();
                 setOpenNotif(true);
                 setNotifStatus("success");
