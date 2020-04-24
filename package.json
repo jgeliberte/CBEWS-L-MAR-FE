@@ -19,6 +19,7 @@
     "react": "^16.13.1",
     "react-big-calendar": "^0.22.1",
     "react-circular-progressbar": "^2.0.2",
+    "react-cookie": "^4.0.3",
     "react-dom": "^16.13.1",
     "react-medium-image-zoom": "^3.1.2",
     "react-router": "^5.0.1",

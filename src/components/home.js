@@ -10,7 +10,6 @@ function Home() {
     const [alert_level, setAlertLevel] = useState([0, "alert_level_0"]);
     const [db_alert_data, setDBAlertData] = useState(null);
     const [triggers, setTriggers] = useState([]);
-
     useEffect(() => {
         fetch(`${AppConfig.HOSTNAME}/api/alert_gen/public_alerts/get_site_current_status/${site_id}`, {
             method: 'GET',
@@ -21,7 +20,6 @@ function Home() {
         }).then(response => response.json()
         ).then(response => {
             if (response.ok) {
-                console.log("JSON DATA", response);
                 if (response.data !== null) {
                     const { public_alert_level, latest_event_triggers } = response.data;
                     setAlertLevel([public_alert_level, `alert_level_${public_alert_level}`]);

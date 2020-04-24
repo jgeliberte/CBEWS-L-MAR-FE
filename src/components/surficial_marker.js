@@ -11,6 +11,9 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert from '@material-ui/lab/Alert';
+
 import {
     MuiPickersUtilsProvider,
     DateTimePicker
@@ -19,6 +22,10 @@ import MomentUtils from '@date-io/moment';
 import moment from 'moment';
 
 import AppConfig from '../reducers/AppConfig';
+
+function Alert(props) {
+	return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 
 const tableStyle = makeStyles(theme => ({
     root: {
@@ -63,6 +70,10 @@ function SurficialMarker() {
 
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+
+    const [notifStatus, setNotifStatus] = useState('success');
+	const [openNotif, setOpenNotif] = useState(false);
+	const [notifText, setNotifText] = useState('');
 
     let markerValueRef = useRef({});
 
@@ -281,8 +292,6 @@ function SurficialMarker() {
             "marker_values": temp_markers
         }
 
-        console.log(request);
-
         fetch(`${AppConfig.HOSTNAME}/api/ground_data/surficial_markers/modify`, {
             method: 'PATCH',
             headers: {
@@ -295,10 +304,15 @@ function SurficialMarker() {
                 if (responseJson.status === true) {
                     initSurficialMarker();
                     handleModificationModalClose();
+                    setOpenNotif(true);
+                    setNotifStatus("success");
+                    setNotifText("Successfully updated surficial marker data.");
                 } else {
-                    console.log(responseJson);
-                    // Enhance UI alerts
+                    setOpenNotif(true);
+                    setNotifStatus("error");
+                    setNotifText("Failed to update surficial marker data. Please check your network connectivity.");
                 }
+                setModificationModal(false);
             })
             .catch((error) => {
                 console.log(error)
@@ -307,8 +321,36 @@ function SurficialMarker() {
     }
 
     const deleteMarkerData = () => {
-        console.log(selectedSurficialMarker);
-        console.log(editableTS)
+        fetch(`${AppConfig.HOSTNAME}/api/ground_data/surficial_markers/remove`, {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                ts: selectedSurficialMarker.ts,
+                weather: selectedSurficialMarker.weather,
+                observer: selectedSurficialMarker.observer,
+                site_id: 29
+            }),
+          }).then((response) => response.json())
+            .then((responseJson) => {
+              if (responseJson.status == true) {
+                initSurficialMarker();
+                setOpenNotif(true);
+                setNotifStatus("success");
+                setNotifText("Successfully deleted surficial marker data.");
+              } else {
+                setOpenNotif(true);
+                setNotifStatus("error");
+                setNotifText("Failed to delete surficial marker data. Please check your network connectivity.");
+              }
+              setModificationModal(false);
+            })
+            .catch((error) => {
+              console.log(error);
+            }
+        );
     }
 
     const addMarkerData = () => {
@@ -327,18 +369,26 @@ function SurficialMarker() {
             }),
           }).then((response) => response.json())
             .then((responseJson) => {
+<<<<<<< HEAD
               if (responseJson.status === true) {
                 console.log(responseJson);
+=======
+              if (responseJson.status == true) {
+>>>>>>> f875c5bd3fb69156a1736e77dbdd13d2802af181
                 initSurficialMarker();
+                setOpenNotif(true);
+                setNotifStatus("success");
+                setNotifText("Successfully added new surficial marker data.");
               } else {
-                console.log(responseJson)
-                console.log("Failed")
+                setOpenNotif(true);
+                setNotifStatus("error");
+                setNotifText("Failed to add new surficial marker data. Please check your network connectivity.");
               }
             })
             .catch((error) => {
               console.log(error);
             }
-          );
+        );
     }
 
     return (
@@ -488,7 +538,15 @@ function SurficialMarker() {
                     </Button>
                 </DialogActions>
             </Dialog>
-
+            <Snackbar open={openNotif} 
+				autoHideDuration={3000} 
+				onClose={() => {setOpenNotif(false)}}
+				anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+				key={'top,right'}>
+				<Alert onClose={() => {setOpenNotif(false)}} severity={notifStatus}>
+					{notifText}
+				</Alert>
+			</Snackbar>
         </Fragment>
     )
 }

@@ -14,6 +14,9 @@ import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert from '@material-ui/lab/Alert';
+
 import {
     MuiPickersUtilsProvider,
     DateTimePicker,
@@ -33,6 +36,10 @@ const tableStyle = makeStyles(theme => ({
         minWidth: 650,
     },
 }));
+
+function Alert(props) {
+	return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 
 const useStyles = makeStyles(theme => ({
     button_fluid: {
@@ -83,6 +90,10 @@ function MoMs() {
     const [modificationDisabled, setModificationDisabled] = useState(false);
     const [autoCompleteFeaturename, setAutoCompleteFeaturename] = useState('');
 
+    const [notifStatus, setNotifStatus] = useState('success');
+	const [openNotif, setOpenNotif] = useState(false);
+	const [notifText, setNotifText] = useState('');
+
     const [featureNameList, setFeatureNameList] = useState({
         options: [{title: 'None selected',
         instance_id: 0}],
@@ -96,6 +107,7 @@ function MoMs() {
     useEffect(() => {
         initMoms();
     }, []);
+
     const initMoms = (site_code = 29) => {
         fetch(`${AppConfig.HOSTNAME}/api/ground_data/moms/fetch/${site_code}`, {
             method: 'GET',
@@ -181,7 +193,7 @@ function MoMs() {
             }
           }).then((response) => response.json())
             .then((responseJson) => {
-              if (responseJson.data.length != 0) {
+              if (responseJson.data.length !== 0) {
                 let f_list = [];
                 let f_container = [];
                 
@@ -231,7 +243,7 @@ function MoMs() {
     const submitNewMoms = () => {
         let api_func = '';
         let json = '';
-        if (modificationDisabled == true) {
+        if (modificationDisabled === true) {
             api_func = 'update';
             json = {
                 "datetime": selectedTS,
@@ -269,11 +281,24 @@ function MoMs() {
             body: JSON.stringify(json),
           }).then((response) => response.json())
             .then((responseJson) => {
-              if (responseJson.status == true) {
+              if (responseJson.status === true) {
                 initMoms();
                 handleCloseForm();
+                setOpenNotif(true);
+                setNotifStatus("success");
+                if (api_func == 'add') {
+                    setNotifText("Successfully added new manifestation of movements.");
+                } else {
+                    setNotifText("Successfully updated manifestation of movements.");
+                }
               } else {
-                console.log(responseJson)
+                setOpenNotif(true);
+                setNotifStatus("error");
+                if (api_func == 'add') {
+                    setNotifText("Failed to add manifestation of movements.");
+                } else {
+                    setNotifText("Failed to update manifestation of movements.");
+                }
               }
             })
             .catch((error) => {
@@ -292,11 +317,16 @@ function MoMs() {
             body: JSON.stringify({"moms_id": selectedMomsID}),
           }).then((response) => response.json())
             .then((responseJson) => {
-              if (responseJson.status == true) {
+              if (responseJson.status === true) {
                 initMoms();
                 handleCloseForm();
+                setOpenNotif(true);
+                setNotifStatus("success");
+                setNotifText("Successfully deleted manifestation of movements.");
               } else {
-                console.log(responseJson)
+                setOpenNotif(true);
+                setNotifStatus("error");
+                setNotifText("Failed to delete manifestation of movements.");
               }
             })
             .catch((error) => {
@@ -506,7 +536,7 @@ function MoMs() {
                                 </TableHead>
                                 <TableBody>
                                     {
-                                        datatable.length == 0 ?
+                                        datatable.length === 0 ?
                                             <TableRow>
                                                 <Typography variant="h4" align="center">
                                                     No data available
@@ -566,6 +596,15 @@ function MoMs() {
                     </Grid>
                 </Grid>
             </Container>
+            <Snackbar open={openNotif} 
+				autoHideDuration={3000} 
+				onClose={() => {setOpenNotif(false)}}
+				anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+				key={'top,right'}>
+				<Alert onClose={() => {setOpenNotif(false)}} severity={notifStatus}>
+					{notifText}
+				</Alert>
+			</Snackbar>
         </Fragment>
     )
 }

@@ -30,6 +30,13 @@ import PDFPreviewer from '../reducers/pdf_previewer'
 import AppConfig from "../reducers/AppConfig";
 import { renderToString } from 'react-dom/server';
 
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert from '@material-ui/lab/Alert';
+
+function Alert(props) {
+	return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
+
 const imageStyle = makeStyles(theme => ({
     img_size: {
         height: '100%',
@@ -100,6 +107,10 @@ function MaintenanceLogs() {
     const [filename, setFilename] = useState("");
     const [log_attachments, setLogAttachments] = useState([]);
 
+    const [notifStatus, setNotifStatus] = useState('success');
+	const [openNotif, setOpenNotif] = useState(false);
+    const [notifText, setNotifText] = useState('');
+    
     function getMaintenanceLogsPerDay(day) {
         fetch(`${AppConfig.HOSTNAME}/api/maintenance/maintenance_logs/fetch`, {
             method: 'POST',
@@ -160,9 +171,14 @@ function MaintenanceLogs() {
                 getMaintenanceLogsPerMonth(range_start, range_end);
                 getMaintenanceLogsPerDay(payload.maintenance_ts)
                 handleClose();
+                setOpenNotif(true);
+                setNotifStatus("success");
+                setNotifText("Successfully added new maintenance logs.");
+            } else {
+                setOpenNotif(true);
+                setNotifStatus("error");
+                setNotifText("Failed to add maintenance logs. Please check your network connectivity.");
             }
-            else console.error("Problem in addMaintenanceLog backend");
-            alert(response.message);
         }).catch(error => console.error(error));
     }
 
@@ -184,9 +200,15 @@ function MaintenanceLogs() {
                 getMaintenanceLogsPerMonth(range_start, range_end);
                 getMaintenanceLogsPerDay(temp_payload.maintenance_ts);
                 handleClose();
+                setOpenNotif(true);
+                setNotifStatus("success");
+                setNotifText("Successfully updated maintenance logs.");
             }
-            else console.error("Problem in updateMaintenanceLog backend");
-            alert(response.message);
+            else {
+                setOpenNotif(true);
+                setNotifStatus("error");
+                setNotifText("Failed to update maintenance logs. Please check your network connectivity.");
+            }
         }).catch(error => console.error(error));
     }
 
@@ -204,9 +226,15 @@ function MaintenanceLogs() {
                 getMaintenanceLogsPerMonth(range_start, range_end);
                 getMaintenanceLogsPerDay(payload.maintenance_ts);
                 handleConfirmClose();
+                setOpenNotif(true);
+                setNotifStatus("success");
+                setNotifText("Successfully deleted maintenance logs.");
             }
-            else console.error("Problem in deleteMaintenanceLog backend");
-            alert(response.message);
+            else {
+                setOpenNotif(true);
+                setNotifStatus("error");
+                setNotifText("Failed to delete maintenance logs. Please check your network connectivity.");
+            }
         }).catch(error => console.error(error));
     }
 
@@ -292,9 +320,15 @@ function MaintenanceLogs() {
                 if (response.ok) {
                     handleUploadClose();
                     setFileToUpload(null);
-                    setFilename("");
+                    setFilename("");                
+                    setOpenNotif(true);
+                    setNotifStatus("success");
+                    setNotifText("Successfully uploaded maintenance log file.");
+                } else {        
+                    setOpenNotif(true);
+                    setNotifStatus("error");
+                    setNotifText("Failed to upload maintenance log file. Please check your network connectivity.");
                 }
-                alert(message);
             })
             .catch(error => console.error(error));
     };
@@ -564,7 +598,15 @@ function MaintenanceLogs() {
                     </Button>
                 </DialogActions>
             </Dialog>
-
+            <Snackbar open={openNotif} 
+				autoHideDuration={3000} 
+				onClose={() => {setOpenNotif(false)}}
+				anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+				key={'top,right'}>
+				<Alert onClose={() => {setOpenNotif(false)}} severity={notifStatus}>
+					{notifText}
+				</Alert>
+			</Snackbar>
         </Fragment>
     )
 }

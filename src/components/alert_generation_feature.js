@@ -69,53 +69,87 @@ function AlertValidation() {
         }).then(response => response.json())
             .then(responseJson => {
                 console.log("get_mar_alert_validation_data responseJson", responseJson);
-                const { public_alert_level, as_of_ts, candidate_data } = responseJson.data;
+                const { public_alert_level, as_of_ts, status } = responseJson.data;
                 const as_of_ts_format = moment(as_of_ts).format("H:mm A, D MMMM YYYY, dddd");
+                setAsOfTs(as_of_ts_format);
+                setEwiData({
+                    ...responseJson.data,
+                    site_code: responseJson.data.site_code,
+                    site_id: responseJson.data.site_id
+                });
                 let rel_trig = [];
-                setCandidateStatus(candidate_data.status);
-                if (public_alert_level > 0) {
+                setCandidateStatus(status);
+                console.log("status", status);
+                if (["on-going", "new", "valid", "extended", "lowering"].includes(status)) {
                     const { validity: val, data_ts: dts, is_release_time: irt, release_triggers, all_validated: a_v } = responseJson.data;
-                    console.log("responseJson.data", responseJson.data);
                     const color = public_alert_level === 3 ? "red" : "#ee9d01";
-                    console.log("candidate_data.status", candidate_data.status);
-                    setPublicAlert((
+                    setPublicAlert(
                         <Typography variant="h2" style={{"color": `${color}`}} className={[classes.label_paddings, classes.alert_level]}>
                             {`Alert ${public_alert_level}`}
                         </Typography>
-                    ));
+                    );
                     setAsOfTs(as_of_ts_format);
-                    setValidity(val);
-                    setDataTs(dts);
+                    console.log("val", val);
+                    setValidity(val !== null ? moment(val).format("MMMM D, YYYY h:mm A") : null);
+                    setDataTs(moment(dts).format("MMMM D, YYYY h:mm A"));
                     setIsReleaseTime(irt);
-                    setEwiData({
-                        ...responseJson.data,
-                        site_code: responseJson.data.candidate_data.site_code,
-                        site_id: responseJson.data.candidate_data.site_id
-                    });
                     setAllValidated(a_v);
                     rel_trig = release_triggers;
+                } else if (status === "no_alert") {
+                    setPublicAlert(
+                        <Typography variant="h2" color="#28a745" className={[classes.label_paddings, classes.alert_level]}>
+                            NO CANDIDATE AS OF NOW
+                        </Typography>
+                        )
                 } else {
-                    setAllValidated(true);
-                    setPublicAlert((
+                    rel_trig = [];
+                    setPublicAlert(
                         <Typography variant="h2" color="#28a745" className={[classes.label_paddings, classes.alert_level]}>
                             {`Alert ${public_alert_level}`}
                         </Typography>
-                    ));
-                    setAsOfTs(as_of_ts_format);
-                    rel_trig = [];
+                    );
                 }
+                // if (public_alert_level > 0) {
+                //     const { validity: val, data_ts: dts, is_release_time: irt, release_triggers, all_validated: a_v } = responseJson.data;
+                //     console.log("responseJson.data", responseJson.data);
+                //     const color = public_alert_level === 3 ? "red" : "#ee9d01";
+                //     console.log("status", status);
+                //     setPublicAlert((
+                //         <Typography variant="h2" style={{"color": `${color}`}} className={[classes.label_paddings, classes.alert_level]}>
+                //             {`Alert ${public_alert_level}`}
+                //         </Typography>
+                //     ));
+                //     setAsOfTs(as_of_ts_format);
+                //     setValidity(moment(val).format("MMMM D, YYYY h:mm A"));
+                //     setDataTs(moment(dts).format("MMMM D, YYYY h:mm A"));
+                //     setIsReleaseTime(irt);
+                //     setEwiData({
+                //         ...responseJson.data,
+                //         site_code: responseJson.data.site_code,
+                //         site_id: responseJson.data.site_id
+                //     });
+                //     setAllValidated(a_v);
+                //     rel_trig = release_triggers;
+                // } else {
+                //     setAllValidated(true);
+                //     setIsReleaseTime(responseJson.data.is_release_time);
+                //     setPublicAlert((
+                //         <Typography variant="h2" color="#28a745" className={[classes.label_paddings, classes.alert_level]}>
+                //             {`Alert ${public_alert_level}`}
+                //         </Typography>
+                //     ));
+                //     setAsOfTs(as_of_ts_format);
 
-                if (candidate_data.status === "no_alert") setPublicAlert(
-                    <Typography variant="h2" color="#28a745" className={[classes.label_paddings, classes.alert_level]}>
-                        NO CANDIDATE AS OF NOW
-                    </Typography>
-                )
+                //     setEwiData({
+                //         ...responseJson.data
+                //     });
+                //     rel_trig = [];
+                // }
 
                 return rel_trig;
             })
             .then(temp => get_charts(temp))
             .then(release_triggers => {
-                console.log("release_triggers", release_triggers);
                 setRow(release_triggers);
             })
             .catch((error) => {
@@ -139,7 +173,6 @@ function AlertValidation() {
             alert_validity = -1;
             remark = "invalid trigger";
         }
-        console.log("data", data);
 
         const payload = {
             trigger_id: data["trigger_id"],
@@ -188,8 +221,6 @@ function AlertValidation() {
             }
             );
     }
-
-    const dt_classes = tableStyle();
     const classes = useStyles();
 
     return (
@@ -197,12 +228,11 @@ function AlertValidation() {
             <Container fixed>
                 <Grid container align="center" spacing={10}>
                     <Grid item xs={12} container spacing={5} >
-                        <Grid item={12}><Typography variant="h3">TRIGGER VALIDATION</Typography></Grid>
+                        <Grid item={12}><Typography variant="h3">ALERT VALIDATION</Typography></Grid>
                     </Grid>
 
                     {/* TRIGGER TABLE  */}
                     {rows.map(row => {
-                        console.log("ROW", row);
                         const { is_invalid } = row;
 
                         return (
@@ -255,14 +285,14 @@ function AlertValidation() {
                             As of {as_of_ts}
                         </Typography>
                         {public_alert}
+                        <Typography variant="h5" className={[classes.label_paddings]}>
+                            Status: {candidate_status.toUpperCase()}
+                        </Typography>
                         {
-                            ["new", "on-going", "extended", "lowering"].includes(candidate_status) && (
+                            validity !== null && (
                                 <Fragment>
                                     <Typography variant="h5" className={[classes.label_paddings]}>
                                         Validity: {validity}
-                                    </Typography>
-                                    <Typography variant="h5" className={[classes.label_paddings]}>
-                                        Data Timestamp: {data_ts}
                                     </Typography>
                                 </Fragment>
                             )
@@ -270,14 +300,14 @@ function AlertValidation() {
                     </Grid>
 
                     {
-                        ["new", "on-going", "extended", "routine", "lowering"].includes(candidate_status) && (
+                        ["valid", "new", "on-going", "extended", "routine", "lowering"].includes(candidate_status) && (
                         // is_release_time && (
                             <Grid item xs={12}>
                                 <Fab variant="extended"
                                     color="primary"
                                     aria-label="add" className={classes.button_fluid}
                                     onClick={() => releaseEwi(ewi_data)}
-                                    disabled={!all_validated || !is_release_time}
+                                    disabled={!(all_validated && is_release_time)}
                                     >
                                     Release EWI
                                 </Fab>
