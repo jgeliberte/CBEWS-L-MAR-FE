@@ -193,7 +193,7 @@ function MoMs() {
             }
           }).then((response) => response.json())
             .then((responseJson) => {
-              if (responseJson.data.length != 0) {
+              if (responseJson.data.length !== 0) {
                 let f_list = [];
                 let f_container = [];
                 
@@ -243,7 +243,7 @@ function MoMs() {
     const submitNewMoms = () => {
         let api_func = '';
         let json = '';
-        if (modificationDisabled == true) {
+        if (modificationDisabled === true) {
             api_func = 'update';
             json = {
                 "datetime": selectedTS,
@@ -281,7 +281,7 @@ function MoMs() {
             body: JSON.stringify(json),
           }).then((response) => response.json())
             .then((responseJson) => {
-              if (responseJson.status == true) {
+              if (responseJson.status === true) {
                 initMoms();
                 handleCloseForm();
                 setOpenNotif(true);
@@ -317,7 +317,7 @@ function MoMs() {
             body: JSON.stringify({"moms_id": selectedMomsID}),
           }).then((response) => response.json())
             .then((responseJson) => {
-              if (responseJson.status == true) {
+              if (responseJson.status === true) {
                 initMoms();
                 handleCloseForm();
                 setOpenNotif(true);
@@ -536,7 +536,7 @@ function MoMs() {
                                 </TableHead>
                                 <TableBody>
                                     {
-                                        datatable.length == 0 ?
+                                        datatable.length === 0 ?
                                             <TableRow>
                                                 <Typography variant="h4" align="center">
                                                     No data available
