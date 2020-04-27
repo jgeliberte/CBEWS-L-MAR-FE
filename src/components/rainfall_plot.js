@@ -16,6 +16,7 @@ import {
 } from '@material-ui/pickers';
 import MomentUtils from '@date-io/moment';
 import AppConfig from "../reducers/AppConfig";
+import { useCookies } from 'react-cookie';
 
 require("highcharts/modules/exporting")(Highcharts);
 
@@ -304,12 +305,13 @@ function RainfallPlot(props) {
     const [loadGraph, setLoadGraph] = useState(false);
     const processed_data = [];
     const [instantaneousDt, setInstantaneousDt] = useState([]);
+    const [cookies, setCookie] = useCookies(['credentials']);
 
     const classes = useStyles();
     const dt_classes = tableStyle();
 
     useEffect(() => {
-        initRainfall()
+        initRainfall(cookies.credentials.site_code)
     }, [])
 
     const initRainfall = (site_code = 'mar') => {
@@ -342,7 +344,7 @@ function RainfallPlot(props) {
 
     const renderGraph = (processed_data, start, end) => {
         const temp = [];
-        const input = { ts_end: end, ts_start: start, site_code: "MAR" }
+        const input = { ts_end: end, ts_start: start, site_code: cookies.credentials.site_code.toUpperCase() }
         processed_data.forEach(data => {
             if (feature === "data_analysis" || feature === "alert_validation") {
                 const cumulative = prepareCumulativeRainfallChartOption(data, input);

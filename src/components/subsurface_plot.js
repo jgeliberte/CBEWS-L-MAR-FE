@@ -7,6 +7,7 @@ import moment from "moment";
 import { getSubsurfacePlotData } from "./sample_subsurface_data_not_final";
 import TransitionalModal from '../reducers/loading';
 import AppConfig from '../reducers/AppConfig';
+import { useCookies } from 'react-cookie';
 require("highcharts/modules/exporting")(Highcharts);
 
 const useStyles = makeStyles(theme => ({
@@ -278,7 +279,6 @@ function prepareVelocityAlertsOption(set_data, form) {
 
     const xAxisTitle = orientation === "across_slope" ? "Across Slope" : "Downslope";
     const category = data.map(x => x.name + 1);
-    console.log('Velocity:', data)
     return {
         series: data,
         chart: {
@@ -361,9 +361,10 @@ function SubsurfacePlot(props) {
     const [plotContainer, setPlotContainer] = useState([]);
     const [plotAvailable, setPlotAvailable] = useState(false);
     const [plot, setPlot] = useState([]);
+    const [cookies, setCookie] = useCookies(['credentials']);
 
     useEffect(()=> {
-        initSubsurface()
+        initSubsurface(cookies.credentials.site_code)
     },[])
     
     const initSubsurface = (site_code = 'mar') => {
@@ -375,6 +376,7 @@ function SubsurfacePlot(props) {
             }
         }).then((response) => response.json())
             .then((responseJson) => {
+                console.log(responseJson);
                 let temp = [];
                 responseJson.data.forEach(element => {
                     let processed_data = [];

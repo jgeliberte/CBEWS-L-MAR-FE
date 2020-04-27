@@ -20,7 +20,7 @@ import {
 } from '@material-ui/pickers';
 import MomentUtils from '@date-io/moment';
 import moment from 'moment';
-
+import { useCookies } from 'react-cookie';
 import AppConfig from '../reducers/AppConfig';
 
 function Alert(props) {
@@ -74,11 +74,12 @@ function SurficialMarker() {
     const [notifStatus, setNotifStatus] = useState('success');
 	const [openNotif, setOpenNotif] = useState(false);
 	const [notifText, setNotifText] = useState('');
+    const [cookies, setCookie] = useCookies(['credentials']);
 
     let markerValueRef = useRef({});
 
     useEffect(() => {
-        initSurficialMarker()
+        initSurficialMarker(cookies.credentials.site_id)
     }, [])
 
     const handleChangePage = (event, newPage) => {
@@ -94,8 +95,8 @@ function SurficialMarker() {
         setPage(0);
     };
 
-    const initSurficialMarker = () => {
-        fetch(`${AppConfig.HOSTNAME}/api/ground_data/surficial_markers/fetch/29`, {
+    const initSurficialMarker = (site_id = 29) => {
+        fetch(`${AppConfig.HOSTNAME}/api/ground_data/surficial_markers/fetch/${site_id}`, {
             method: 'GET',
             headers: {
                 Accept: 'application/json',
@@ -286,7 +287,7 @@ function SurficialMarker() {
         });
 
         let request = {
-            "site_id": 29,
+            "site_id": cookies.credentials.site_id,
             "ref_ts": selectedSurficialMarker.ts,
             "new_ts": editableTS,
             "weather": selectedSurficialMarker.weather,
@@ -333,7 +334,7 @@ function SurficialMarker() {
                 ts: selectedSurficialMarker.ts,
                 weather: selectedSurficialMarker.weather,
                 observer: selectedSurficialMarker.observer,
-                site_id: 29
+                site_id: cookies.credentials.site_id
             }),
           }).then((response) => response.json())
             .then((responseJson) => {
@@ -367,7 +368,7 @@ function SurficialMarker() {
               "weather": addWeather,
               "observer": addObserver,
               "marker_value": markerValueRef.current,
-              "site_id": 29
+              "site_id": cookies.credentials.site_id
             }),
           }).then((response) => response.json())
             .then((responseJson) => {
@@ -381,6 +382,7 @@ function SurficialMarker() {
                 setNotifStatus("error");
                 setNotifText("Failed to add new surficial marker data. Please check your network connectivity.");
               }
+              handleClose();
             })
             .catch((error) => {
               console.log(error);

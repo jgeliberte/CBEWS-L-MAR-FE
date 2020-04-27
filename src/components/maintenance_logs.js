@@ -29,7 +29,7 @@ import AttachmentsGridList from '../reducers/attachment_list';
 import PDFPreviewer from '../reducers/pdf_previewer'
 import AppConfig from "../reducers/AppConfig";
 import { renderToString } from 'react-dom/server';
-
+import { useCookies } from 'react-cookie';
 import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
 
@@ -112,7 +112,8 @@ function MaintenanceLogs() {
     const [notifStatus, setNotifStatus] = useState('success');
 	const [openNotif, setOpenNotif] = useState(false);
     const [notifText, setNotifText] = useState('');
-    
+    const [cookies, setCookie] = useCookies(['credentials']);
+
     function getMaintenanceLogsPerDay(day) {
         fetch(`${AppConfig.HOSTNAME}/api/maintenance/maintenance_logs/fetch`, {
             method: 'POST',
@@ -121,7 +122,7 @@ function MaintenanceLogs() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                "site_id": AppConfig.CONFIG.site_id,
+                "site_id": cookies.credentials.site_id,
                 "ts_dict": {
                     "start": `${moment(day).format("YYYY-MM-DD")} 00:00:00`,
                     "end": `${moment(day).format("YYYY-MM-DD")} 23:59:00`
@@ -143,7 +144,7 @@ function MaintenanceLogs() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                "site_id": AppConfig.CONFIG.site_id,
+                "site_id": cookies.credentials.site_id,
                 "ts_dict": {
                     "start": `${moment(start).format("YYYY-MM-DD")} 00:00:00`,
                     "end": `${moment(end).format("YYYY-MM-DD")} 23:59:00`
@@ -187,7 +188,7 @@ function MaintenanceLogs() {
     function updateMaintenanceLog(temp_payload) {
         const payload = {
             ...temp_payload,
-            site_id: AppConfig.CONFIG.site_id
+            site_id: cookies.credentials.site_id
         }
         fetch(`${AppConfig.HOSTNAME}/api/maintenance/maintenance_logs/update`, {
             method: 'POST',
@@ -215,7 +216,7 @@ function MaintenanceLogs() {
     }
 
     function deleteMaintenanceLog(payload) {
-        const site_id = AppConfig.CONFIG.site_id;
+        const site_id = cookies.credentials.site_id;
         fetch(`${AppConfig.HOSTNAME}/api/maintenance/maintenance_logs/remove/${site_id}/${payload.maintenance_log_id}`, {
             method: 'GET',
             headers: {
