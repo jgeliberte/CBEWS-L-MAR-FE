@@ -120,7 +120,6 @@ function SurficialMarker() {
                 setMarkersTH(temp_th);
                 responseJson.data.forEach(element => {
                     let temp_obj = {};
-                    let temp_dr = [];
                     let marker_data = Object.values(element)[0];
 
                     temp_obj['ts'] = marker_data.ts
@@ -213,7 +212,6 @@ function SurficialMarker() {
     }
 
     const handleModificationModalOpen = (element) => {
-        let temp = element;
         let ret_val = [];
 
         setSelectedSurficialMarker(element);
@@ -304,7 +302,7 @@ function SurficialMarker() {
             body: JSON.stringify(request),
         }).then((response) => response.json())
             .then((responseJson) => {
-                if (responseJson.status == true) {
+                if (responseJson.status === true) {
                     initSurficialMarker();
                     handleModificationModalClose();
                     setOpenNotif(true);

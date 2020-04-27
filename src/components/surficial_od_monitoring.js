@@ -3,7 +3,8 @@ import {
     Grid, Paper, Container,
     Fab, makeStyles, Table,
     TableBody, TableCell, TableHead,
-    TableRow, Box, TextField, Button
+    TableRow, Box, TextField, Button,
+    FormControl, InputLabel, Select, MenuItem
 } from "@material-ui/core";
 
 import Dialog from '@material-ui/core/Dialog';
@@ -39,7 +40,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const default_vars = {
-    "is_lgu": 0,
+    "alert_level": 1,
     "reason": "",
     "reporter": "",
     "site_id": 29,
@@ -77,6 +78,22 @@ function ODMonitoring() {
         }).catch(error => console.error(error));
     }
 
+    const handleClickOpen = () => {
+      setOpen(true);
+    };
+  
+    const handleClose = () => {
+      setOpen(false);
+    };
+
+    const handleClickOpenRaise = () => {
+      setOpenRaise(true);
+    };
+  
+    const handleCloseRaise = () => {
+      setOpenRaise(false);
+    };
+
     const handleChangeValue = key => event => {
         const { value } = event.target;
         setODInput({
@@ -92,27 +109,14 @@ function ODMonitoring() {
         });
     };
 
-    const handleClickOpen = () => {
-      setOpen(true);
-    };
-  
-    const handleClose = () => {
-      setOpen(false);
-    };
-
-
-    const handleClickOpenRaise = () => {
-      setOpenRaise(true);
-    };
-  
-    const handleCloseRaise = () => {
-      setOpenRaise(false);
-    };
-
     const handleSubmit = () => {
         fetch(`${AppConfig.HOSTNAME}/api/ground_data/on_demand/add`, {
             method: 'POST',
-            body: od_input,
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(od_input),
         }).then(response => response.json())
             .then(response => {
                 const { message } = response;
@@ -120,6 +124,7 @@ function ODMonitoring() {
                     console.log(response);
                     handleClose();
                     setODInput(default_vars);
+                    fetchODData();
                 }
                 alert(message);
             })
@@ -138,6 +143,7 @@ function ODMonitoring() {
                                     <TableCell>Date and time</TableCell>
                                     <TableCell>Reporter</TableCell>
                                     <TableCell>Reason for Monitoring</TableCell>
+                                    <TableCell>Alert Level</TableCell>
                                     {/* <TableCell>Attachments</TableCell> */}
                                 </TableRow>
                             </TableHead>
@@ -147,8 +153,9 @@ function ODMonitoring() {
                                         <TableCell component="th" scope="row">
                                             {row.ts}
                                         </TableCell>
-                                        <TableCell>{row.is_llmc}</TableCell>
+                                        <TableCell>{row.reporter}</TableCell>
                                         <TableCell>{row.reason}</TableCell>
+                                        <TableCell>{row.alert_level}</TableCell>
                                         {/* <TableCell>{row.attachments}</TableCell> */}
                                     </TableRow>
                                 ))}
@@ -221,7 +228,7 @@ function ODMonitoring() {
                 value={od_input.reporter}
                 onChange={handleChangeValue("reporter")}
             />
-             <TextField
+            <TextField
                 autoFocus
                 margin="dense"
                 id="name"
@@ -231,6 +238,21 @@ function ODMonitoring() {
                 value={od_input.reason}
                 onChange={handleChangeValue("reason")}
             />
+            <FormControl className={classes.formControl} fullWidth>
+                <InputLabel shrink id="demo-simple-select-placeholder-label-label">
+                    Alert Level
+                </InputLabel>
+                <Select
+                    labelId="demo-simple-select-placeholder-label-label"
+                    id="demo-simple-select-placeholder-label"
+                    value={od_input.alert_level}
+                    onChange={handleChangeValue("alert_level")}
+                >   
+                    <MenuItem value={1}><em>Alert 1</em></MenuItem>
+                    <MenuItem value={2}>Alert 2</MenuItem>
+                    <MenuItem value={3}>Alert 3</MenuItem>
+                </Select>
+            </FormControl>
              {/* <TextField
                 autoFocus
                 margin="dense"
