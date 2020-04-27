@@ -23,6 +23,7 @@ import moment from 'moment';
 
 import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
+import { useCookies } from 'react-cookie';
 
 function Alert(props) {
 	return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -60,9 +61,10 @@ function CapacityAndVulerability() {
     const [notifStatus, setNotifStatus] = useState('success');
 	const [openNotif, setOpenNotif] = useState(false);
     const [notifText, setNotifText] = useState('');
+    const [cookies, setCookie] = useCookies(['credentials']);
     
     useEffect(()=> {
-        initCaV();
+        initCaV(cookies.credentials.site_id, "all");
     },[]);
 
     const initCaV = (site_id = 29, cav_id = "all") => {
@@ -128,7 +130,6 @@ function CapacityAndVulerability() {
     }
 
     const confirmDelete = () => {
-        // Leave 29 for site ID for now
         fetch(`${AppConfig.HOSTNAME}/api/cra/capacity_and_vulnerability/remove`, {
             method: 'DELETE',
             headers: {
@@ -137,7 +138,7 @@ function CapacityAndVulerability() {
             },
             body: JSON.stringify({
                 "cav_id": cavID,
-                "site_id": 29
+                "site_id": cookies.credentials.site_id
             }),
             }).then((response) => response.json())
             .then((responseJson) => {
@@ -174,8 +175,8 @@ function CapacityAndVulerability() {
                 "owner": owner,
                 "incharge": incharge,
                 "updater": updater,
-                "user_id": 1,
-                "site_id": 29
+                "user_id": cookies.credentials.user_id,
+                "site_id": cookies.credentials.site_id
             }
         } else if (cmd === "update") {
             json = {
@@ -187,8 +188,8 @@ function CapacityAndVulerability() {
                 "owner": owner,
                 "incharge": incharge,
                 "updater": updater,
-                "user_id": 1,
-                "site_id": 29
+                "user_id": cookies.credentials.user_id,
+                "site_id": cookies.credentials.site_id
             }
         } else {
             return;

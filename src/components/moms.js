@@ -24,6 +24,7 @@ import {
 import MomentUtils from '@date-io/moment';
 import moment from 'moment';
 
+import { useCookies } from 'react-cookie';
 import AppConfig from '../reducers/AppConfig';
 
 const tableStyle = makeStyles(theme => ({
@@ -92,7 +93,8 @@ function MoMs() {
 
     const [notifStatus, setNotifStatus] = useState('success');
 	const [openNotif, setOpenNotif] = useState(false);
-	const [notifText, setNotifText] = useState('');
+    const [notifText, setNotifText] = useState('');
+    const [cookies, setCookie] = useCookies(['credentials']);
 
     const [featureNameList, setFeatureNameList] = useState({
         options: [{title: 'None selected',
@@ -105,11 +107,11 @@ function MoMs() {
     const [datatable, setDatatable] = useState([]);
 
     useEffect(() => {
-        initMoms();
+        initMoms(cookies.credentials.site_id);
     }, []);
 
-    const initMoms = (site_code = 29) => {
-        fetch(`${AppConfig.HOSTNAME}/api/ground_data/moms/fetch/${site_code}`, {
+    const initMoms = (site_id = 29) => {
+        fetch(`${AppConfig.HOSTNAME}/api/ground_data/moms/fetch/${site_id}`, {
             method: 'GET',
             headers: {
                 Accept: 'application/json',
@@ -150,7 +152,6 @@ function MoMs() {
     }
 
     const handleMomsModification = (data) => {
-        console.log(data)
         let temp = {
             instance_id: data.instance_id,
             feature_name: data.feature_name
@@ -185,7 +186,7 @@ function MoMs() {
 
     const handleChangeFeatureType = (feature_id) => {
         setSelectedMomsFeatures(feature_id);
-        fetch(`${AppConfig.HOSTNAME}/api/ground_data/moms/fetch/feature/${feature_id}/29`, {
+        fetch(`${AppConfig.HOSTNAME}/api/ground_data/moms/fetch/feature/${feature_id}/${cookies.credentials.site_id}`, {
             method: 'GET',
             headers: {
               Accept: 'application/json',
@@ -252,8 +253,8 @@ function MoMs() {
                 "reporter": selectedReporter,
                 "location": selectedLocation,
                 "remarks": selectedRemarks,
-                "site_id": 29,
-                "user_id": 1,
+                "site_id": cookies.credentials.site_id,
+                "user_id": cookies.credentials.user_id,
                 "alert_level": selectedAlertLevel,
                 "moms_id": selectedMomsID
             }
@@ -266,8 +267,8 @@ function MoMs() {
                 "reporter": selectedReporter,
                 "location": selectedLocation,
                 "remarks": selectedRemarks,
-                "site_id": 29,
-                "user_id": 1,
+                "site_id": cookies.credentials.site_id,
+                "user_id": cookies.credentials.user_id,
                 "alert_level": selectedAlertLevel
             }
         }

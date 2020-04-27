@@ -7,6 +7,7 @@ import {
     Grid, Paper, Container, Fab, makeStyles, Typography
 } from "@material-ui/core";
 import AppConfig from "../reducers/AppConfig";
+import { useCookies } from 'react-cookie';
 require("highcharts/modules/exporting")(Highcharts);
 
 const useStyles = makeStyles(theme => ({
@@ -122,9 +123,10 @@ function SurficialPlot(props) {
     const classes = useStyles();
     const [load, setLoad] = useState(false);
     const [graphComponent, setGraphComponent] = useState([]);
+    const [cookies, setCookie] = useCookies(['credentials']);
 
     useEffect(() => {
-        initSurficial()
+        initSurficial(cookies.credentials.site_code);
     }, [])
 
     const initSurficial = (site_code = 'mar') => {

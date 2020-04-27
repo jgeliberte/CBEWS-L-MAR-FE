@@ -59,8 +59,6 @@ function EarthquakeTables() {
     const classes = useStyles();
 
     const handleChangePage = (event, newPage) => {
-        console.log("Event value:", event.target.value)
-        console.log("New page:", newPage)
         setPage(newPage);
       };
     
