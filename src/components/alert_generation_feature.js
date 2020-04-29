@@ -12,6 +12,13 @@ import moment from "moment";
 
 import RainfallPlot from './rainfall_plot';
 
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert from '@material-ui/lab/Alert';
+
+function Alert(props) {
+	return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
+
 function AlertValidation() {
     const [public_alert, setPublicAlert] = useState("Loading...");
     const [candidate_status, setCandidateStatus] = useState("no_alert");
@@ -23,6 +30,10 @@ function AlertValidation() {
     const [rows, setRow] = useState([]);
     const [all_validated, setAllValidated] = useState(false);
 
+    const [openNotif, setOpenNotif] = useState(false);
+    const [notifText, setNotifText] = useState("");
+    const [notifStatus, setNotifStatus] = useState('success');
+
 
     useEffect(() => {
         // GET CANDIDATE TRIGGER
@@ -32,7 +43,6 @@ function AlertValidation() {
     const get_charts = (release_triggers) => {
         let return_data = [];
         if (release_triggers.length > 0) {
-            console.log("MERON release_triggers", release_triggers);
             const chart_list = release_triggers.map(trig => {
     
                 const { trigger } = trig;
@@ -79,7 +89,6 @@ function AlertValidation() {
                 });
                 let rel_trig = [];
                 setCandidateStatus(status);
-                console.log("status", status);
                 if (["on-going", "new", "valid", "extended", "lowering"].includes(status)) {
                     const { validity: val, data_ts: dts, is_release_time: irt, release_triggers, all_validated: a_v } = responseJson.data;
                     const color = public_alert_level === 3 ? "red" : "#ee9d01";
@@ -89,7 +98,6 @@ function AlertValidation() {
                         </Typography>
                     );
                     setAsOfTs(as_of_ts_format);
-                    console.log("val", val);
                     setValidity(val !== null ? moment(val).format("MMMM D, YYYY h:mm A") : null);
                     setDataTs(moment(dts).format("MMMM D, YYYY h:mm A"));
                     setIsReleaseTime(irt);
@@ -109,42 +117,6 @@ function AlertValidation() {
                         </Typography>
                     );
                 }
-                // if (public_alert_level > 0) {
-                //     const { validity: val, data_ts: dts, is_release_time: irt, release_triggers, all_validated: a_v } = responseJson.data;
-                //     console.log("responseJson.data", responseJson.data);
-                //     const color = public_alert_level === 3 ? "red" : "#ee9d01";
-                //     console.log("status", status);
-                //     setPublicAlert((
-                //         <Typography variant="h2" style={{"color": `${color}`}} className={[classes.label_paddings, classes.alert_level]}>
-                //             {`Alert ${public_alert_level}`}
-                //         </Typography>
-                //     ));
-                //     setAsOfTs(as_of_ts_format);
-                //     setValidity(moment(val).format("MMMM D, YYYY h:mm A"));
-                //     setDataTs(moment(dts).format("MMMM D, YYYY h:mm A"));
-                //     setIsReleaseTime(irt);
-                //     setEwiData({
-                //         ...responseJson.data,
-                //         site_code: responseJson.data.site_code,
-                //         site_id: responseJson.data.site_id
-                //     });
-                //     setAllValidated(a_v);
-                //     rel_trig = release_triggers;
-                // } else {
-                //     setAllValidated(true);
-                //     setIsReleaseTime(responseJson.data.is_release_time);
-                //     setPublicAlert((
-                //         <Typography variant="h2" color="#28a745" className={[classes.label_paddings, classes.alert_level]}>
-                //             {`Alert ${public_alert_level}`}
-                //         </Typography>
-                //     ));
-                //     setAsOfTs(as_of_ts_format);
-
-                //     setEwiData({
-                //         ...responseJson.data
-                //     });
-                //     rel_trig = [];
-                // }
 
                 return rel_trig;
             })
@@ -181,7 +153,6 @@ function AlertValidation() {
             user_id: 1,
             ts_last_retrigger: data["date_time"]
         };
-        console.log("payload", payload);
 
         fetch(`${AppConfig.HOSTNAME}/api/alert_gen/public_alerts/validate_trigger`, {
             method: 'POST',
@@ -192,7 +163,6 @@ function AlertValidation() {
             body: JSON.stringify(payload),
         }).then(response => response.json())
             .then(responseJson => {
-                console.log("validate_trigger responseJson", responseJson);
                 updateAlertGen();
             })
             .catch((error) => {
@@ -202,7 +172,6 @@ function AlertValidation() {
     }
     
     const releaseEwi = (payload) => {
-        console.log("payload", payload);
         fetch(`${AppConfig.HOSTNAME}/api/alert_gen/public_alerts/insert_ewi`, {
             method: 'POST',
             headers: {
@@ -212,12 +181,16 @@ function AlertValidation() {
             body: JSON.stringify(payload),
         }).then(response => response.json())
             .then(responseJson => {
-                console.log("insert_ewi responseJson", responseJson);
-                alert("Inserted");
+                setNotifText("Successfully released EWI");
+                setOpenNotif(true);
+                setNotifStatus("success");
                 updateAlertGen();
             })
             .catch((error) => {
                 console.error(error);
+                setOpenNotif(true);
+                setNotifStatus("error");
+                setNotifText("Failed to release EWI. Please contact the developers or file a bug report");
             }
             );
     }
@@ -317,6 +290,15 @@ function AlertValidation() {
 
                 </Grid>
             </Container>
+            <Snackbar open={openNotif} 
+                autoHideDuration={3000} 
+                onClose={() => {setOpenNotif(false)}}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                key={'top,right'}>
+                <Alert onClose={() => {setOpenNotif(false)}} severity={notifStatus}>
+                    {notifText}
+                </Alert>
+            </Snackbar>
         </Fragment>
     );
 }
@@ -346,7 +328,6 @@ function CurrentAlertArea(props) {
     };
 
     if (leo !== "empty") {
-        console.log(leo);
         const as_of = moment(leo.data_ts).add(30, "mins").format("dddd, MMMM Do YYYY, h:mm A");
         const event_start = moment(leo.event_start).format("MMMM D, YYYY h:mm A");
         const validity = moment(leo.validity).format("MMMM D, YYYY h:mm A");
@@ -399,8 +380,6 @@ function LatestCurrentAlert() {
     const [releaseStatus, setReleaseStatus] = useState("No event on site.");
 
     useEffect(() => {
-        console.log(`${AppConfig.HOSTNAME}/api/alert_gen/public_alerts/get_ongoing_and_extended_monitoring`);
-
         Helper.httpRequest(
             `${AppConfig.HOSTNAME}/api/alert_gen/public_alerts/get_ongoing_and_extended_monitoring`,
             "GET", [], null
