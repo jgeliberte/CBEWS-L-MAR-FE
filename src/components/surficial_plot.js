@@ -152,22 +152,6 @@ function SurficialPlot(props) {
         );
     }
 
-    const downloadGraph = () => {
-        setModal([<TransitionalModal status={true} />])
-        setTimeout(() => {
-            setModal([<TransitionalModal status={false} />])
-            alert("Download success!")
-        }, 3000)
-    }
-
-    const printGraph = () => {
-        setModal([<TransitionalModal status={true} />])
-        setTimeout(() => {
-            setModal([<TransitionalModal status={false} />])
-            alert("Print success!")
-        }, 3000)
-    }
-
     return (
         <Fragment>
             <Container align="center" justify="center" style={{ marginTop: 24 }}>
@@ -178,26 +162,6 @@ function SurficialPlot(props) {
                                 load ? graphComponent : <Typography>Loading</Typography>
                             }
                         </Paper>
-                    </Grid>
-                    <Grid container align="center" style={{ paddingTop: 20 }}>
-                        <Grid item xs={3} />
-                        <Grid item xs={3}>
-                            <Fab variant="extended"
-                                color="primary"
-                                aria-label="add" className={classes.button_fluid}
-                                onClick={() => {downloadGraph()}}>
-                                Download
-                        </Fab>
-                        </Grid>
-                        <Grid item xs={3}>
-                            <Fab variant="extended"
-                                color="primary"
-                                aria-label="add" className={classes.button_fluid}
-                                onClick={() => {printGraph()}}>
-                                Print
-                        </Fab>
-                        </Grid>
-                        <Grid item xs={3} />
                     </Grid>
 
                 </Grid>

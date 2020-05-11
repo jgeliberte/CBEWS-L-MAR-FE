@@ -1,8 +1,9 @@
 import React, { useState, Fragment, useEffect } from 'react';
+import green from '@material-ui/core/colors/green';
 import TransitionalModal from '../reducers/loading';
 import {
     Container, Grid, Fab, Typography,
-    Table, TableBody, TableCell, TableHead,
+    Button, TableBody, TableCell, TableHead,
     TableRow, Paper, Box, Divider
 } from '@material-ui/core';
 import { useStyles, tableStyle } from '../styles/general_styles';
@@ -11,12 +12,19 @@ import Helper from "../Helpers";
 import moment from "moment";
 
 import RainfallPlot from './rainfall_plot';
+import SurficialPlot from './surficial_plot';
+import SubsurfacePlot from './subsurface_plot';
 
 import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
 
+
 function Alert(props) {
 	return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
+
+function identifyAlertStyle (public_alert_level, classes) {
+    return classes[`alert_level_${public_alert_level}`];
 }
 
 function AlertValidation() {
@@ -28,6 +36,7 @@ function AlertValidation() {
     const [ewi_data, setEwiData] = useState({});
     const [is_release_time, setIsReleaseTime] = useState(false);
     const [rows, setRow] = useState([]);
+    const [day, setDay] = useState(null);
     const [all_validated, setAllValidated] = useState(false);
 
     const [openNotif, setOpenNotif] = useState(false);
@@ -39,6 +48,33 @@ function AlertValidation() {
         // GET CANDIDATE TRIGGER
         updateAlertGen();
     }, []);
+
+    
+    function handleFeatureNav(feature) {
+        let return_feat = []
+        const a_v = "alert_validation";
+        switch (feature) {
+            case "Rainfall":
+                return_feat = [<RainfallPlot feature={a_v} />];
+                break;
+            case "Surficial":
+                return_feat = [<SurficialPlot feature={a_v} />];
+                break;
+            case "Subsurface":
+                return_feat = [<SubsurfacePlot feature={a_v} />];
+                break;
+            case "Moms":
+                return_feat = [<SubsurfacePlot feature={a_v} />];
+                break;
+            case "Earthquake":
+                return_feat = [<SubsurfacePlot feature={a_v} />];
+                break;
+            default:
+                return_feat = null;
+                break;
+        }
+        return return_feat;
+    }
     
     const get_charts = (release_triggers) => {
         let return_data = [];
@@ -46,16 +82,9 @@ function AlertValidation() {
             const chart_list = release_triggers.map(trig => {
     
                 const { trigger } = trig;
-                let chart_load;
-    
-                if (trigger === "Rainfall") chart_load = (<Grid item xs={12}><RainfallPlot feature={"alert_validation"} /></Grid>)
-                else if (trigger === "Subsurface") chart_load = (<Grid item xs={12}>subsurface</Grid>)
-                else if (trigger === "Surficial") chart_load = (<Grid item xs={12}>surficial</Grid>)
-                else if (trigger === "Moms") chart_load = (
-                    <Grid item xs={12}>surficial</Grid>
-                    )
-                else chart_load = null
-    
+                let chart_load = null;
+                chart_load = handleFeatureNav(trigger);
+
                 return {
                     ...trig,
                     chart: chart_load
@@ -91,24 +120,28 @@ function AlertValidation() {
                 setCandidateStatus(status);
                 if (["on-going", "new", "valid", "extended", "lowering"].includes(status)) {
                     const { validity: val, data_ts: dts, is_release_time: irt, release_triggers, all_validated: a_v } = responseJson.data;
-                    const color = public_alert_level === 3 ? "red" : "#ee9d01";
+                    const color_class = identifyAlertStyle(public_alert_level, classes);
                     setPublicAlert(
-                        <Typography variant="h2" style={{"color": `${color}`}} className={[classes.label_paddings, classes.alert_level]}>
+                        <Typography variant="h2" className={[classes.label_paddings, classes.alert_level, color_class]}>
                             {`Alert ${public_alert_level}`}
                         </Typography>
                     );
                     setAsOfTs(as_of_ts_format);
-                    setValidity(val !== null ? moment(val).format("MMMM D, YYYY h:mm A") : null);
+                    setValidity(![null, ''].includes(val) ? moment(val).format("MMMM D, YYYY h:mm A") : null);
                     setDataTs(moment(dts).format("MMMM D, YYYY h:mm A"));
                     setIsReleaseTime(irt);
                     setAllValidated(a_v);
                     rel_trig = release_triggers;
+                    if ("day" in responseJson.data) setDay(responseJson.data.day)
+
+                    setNotifText("Successfully retrieved updated candidate data.");
                 } else if (status === "no_alert") {
                     setPublicAlert(
                         <Typography variant="h2" color="#28a745" className={[classes.label_paddings, classes.alert_level]}>
                             NO CANDIDATE AS OF NOW
                         </Typography>
                         )
+                    setNotifText("No new candidate data.");
                 } else {
                     rel_trig = [];
                     setPublicAlert(
@@ -116,7 +149,11 @@ function AlertValidation() {
                             {`Alert ${public_alert_level}`}
                         </Typography>
                     );
+                    setNotifText("No candidate data.");
                 }
+
+                setOpenNotif(true);
+                setNotifStatus("success");
 
                 return rel_trig;
             })
@@ -126,6 +163,10 @@ function AlertValidation() {
             })
             .catch((error) => {
                 console.log(error);
+
+                setOpenNotif(true);
+                setNotifText("Problem in updating candidate data.");
+                setNotifStatus("error");
             });
     }
 
@@ -137,11 +178,9 @@ function AlertValidation() {
         let alert_validity = 0;
         let remark = "";
         if (status) {
-            alert("Alert valid!");
             alert_validity = 1;
             remark = "valid trigger";
         } else {
-            alert("Alert invalid!");
             alert_validity = -1;
             remark = "invalid trigger";
         }
@@ -163,12 +202,17 @@ function AlertValidation() {
             body: JSON.stringify(payload),
         }).then(response => response.json())
             .then(responseJson => {
+                setOpenNotif(true);
+                setNotifText("Successfully updated trigger validity.");
+                setNotifStatus("success");
                 updateAlertGen();
             })
             .catch((error) => {
+                setOpenNotif(true);
+                setNotifText("Error in changing trigger validity.");
+                setNotifStatus("success");
                 console.error(error);
-            }
-            );
+            });
     }
     
     const releaseEwi = (payload) => {
@@ -201,12 +245,12 @@ function AlertValidation() {
             <Container fixed>
                 <Grid container align="center" spacing={10}>
                     <Grid item xs={12} container spacing={5} >
-                        <Grid item={12}><Typography variant="h3">ALERT VALIDATION</Typography></Grid>
+                        <Grid item={12}><Typography variant="h3"> </Typography></Grid>
                     </Grid>
 
                     {/* TRIGGER TABLE  */}
                     {rows.map(row => {
-                        const { is_invalid } = row;
+                        const { is_invalid, has_alert_status } = row;
 
                         return (
                             <Fragment>
@@ -233,16 +277,17 @@ function AlertValidation() {
 
                                 <Grid item xs={3}>
                                     <Fab variant="extended"
-                                        color={!is_invalid ? "secondary" : "primary"}
-                                        aria-label="add" className={classes.button_fluid}
+                                        color="default"
+                                        aria-label="add" className={!is_invalid && has_alert_status ? [classes.button_fluid, classes.fabGreen] : classes.button_fluid}
+                                        // style={"backgrondColor: 'green';"}
                                         onClick={() => { validateAlert(true, row) }}>
                                         Valid
                                     </Fab>
                                 </Grid>
                                 <Grid item xs={3}>
                                     <Fab variant="extended"
-                                        color={is_invalid ? "secondary" : "primary"}
-                                        aria-label="add" className={classes.button_fluid}
+                                        color="default"
+                                        aria-label="add" className={is_invalid && has_alert_status ? [classes.button_fluid, classes.fabRed] : classes.button_fluid}
                                         onClick={() => { validateAlert(false, row) }}>
                                         Invalid
                                     </Fab>
@@ -259,10 +304,10 @@ function AlertValidation() {
                         </Typography>
                         {public_alert}
                         <Typography variant="h5" className={[classes.label_paddings]}>
-                            Status: {candidate_status.toUpperCase()}
+                            Status: {candidate_status === 'no_alert' ? "No candidate as of the moment" : candidate_status.toUpperCase()}
                         </Typography>
                         {
-                            validity !== null && (
+                            ![null, ''].includes(validity) && (
                                 <Fragment>
                                     <Typography variant="h5" className={[classes.label_paddings]}>
                                         Validity: {validity}
@@ -270,21 +315,30 @@ function AlertValidation() {
                                 </Fragment>
                             )
                         }
+                        {
+                            day !== null && (
+                                <Typography>Day {day}</Typography>
+                            )
+                        }
                     </Grid>
 
                     {
                         ["valid", "new", "on-going", "extended", "routine", "lowering"].includes(candidate_status) && (
                         // is_release_time && (
-                            <Grid item xs={12}>
+                            <Fragment>
+                            <Grid item xs={4} />
+                            <Grid item xs={4}>
                                 <Fab variant="extended"
                                     color="primary"
-                                    aria-label="add" className={classes.button_fluid}
+                                    aria-label="add" className={`${classes.button_fluid} ${classes.releaseEwiButton}`}
                                     onClick={() => releaseEwi(ewi_data)}
                                     disabled={!(all_validated && is_release_time)}
                                     >
                                     Release EWI
                                 </Fab>
                             </Grid>
+                            <Grid item xs={4} />
+                            </Fragment>
                         )
                     }
 
@@ -305,7 +359,8 @@ function AlertValidation() {
 
 
 function CurrentAlertArea(props) {
-    const { leo, classes } = props;
+    const { leo, classes, actions } = props;
+    const { sendEmail, download, print } = actions;
 
     const prepareTriggers = (triggers) => {
         if (triggers.length > 0) {
@@ -313,7 +368,7 @@ function CurrentAlertArea(props) {
                 const { trigger_type, timestamp, info, trigger_source } = trigger;
                 return (
                     <Typography variant="h5" className={classes.label_paddings}>
-                        {`${trigger_source.toUpperCase()} (${trigger_type}): ${info}`}
+                        {`${moment(timestamp).format("MMMM D, YYYY h:mm A")} | ${trigger_source.toUpperCase()} (${trigger_type}): ${info}`}
                     </Typography>
                 );
             });
@@ -331,18 +386,21 @@ function CurrentAlertArea(props) {
         const as_of = moment(leo.data_ts).add(30, "mins").format("dddd, MMMM Do YYYY, h:mm A");
         const event_start = moment(leo.event_start).format("MMMM D, YYYY h:mm A");
         const validity = moment(leo.validity).format("MMMM D, YYYY h:mm A");
+
+        const color_class = identifyAlertStyle(leo.public_alert_level, classes);
+
         return (
             <Fragment>
                 <Grid item xs={6} align="center">
-                    <Typography variant="h2" className={[classes.label_paddings, classes.alert_level]}>
+                    <Typography variant="h2" className={[classes.label_paddings, classes.alert_level, color_class]}>
                         {`Alert ${leo.public_alert_level}`}
                     </Typography>
                     <Typography variant="h5">
                         {`As of ${as_of}`}
                     </Typography>
-                    <Typography variant="h5">
+                    {/* <Typography variant="h5">
                         {prepareTriggers(leo.release_triggers)}
-                    </Typography>
+                    </Typography> */}
                     <Typography variant="h5" className={classes.label_paddings}>
                         {`Event Start: ${event_start}`}
                     </Typography>
@@ -363,6 +421,39 @@ function CurrentAlertArea(props) {
                     <Box style={{ paddingTop: 100 }}>
                         Prepared by: {leo.reporter}
                     </Box>
+                </Grid>
+
+                <Grid container justify="center" className={classes.menu_functions}>
+                    <Grid item xs={3}>
+
+                    </Grid>
+                    <Grid item xs={2} align="center" >
+                        <Fab variant="extended"
+                            color="primary"
+                            aria-label="add" className={classes.button_fluid}
+                            onClick={() => { sendEmail() }}>
+                            Email
+                        </Fab>
+                    </Grid>
+                    <Grid item xs={2} align="center">
+                        <Fab variant="extended"
+                            color="primary"
+                            aria-label="add" className={classes.button_fluid}
+                            onClick={() => { download() }}>
+                            Download
+                        </Fab>
+                    </Grid>
+                    <Grid item xs={2} align="center">
+                        <Fab variant="extended"
+                            color="primary"
+                            aria-label="add" className={classes.button_fluid}
+                            onClick={() => { print() }}>
+                            Print
+                        </Fab>
+                    </Grid>
+                    <Grid item xs={3}>
+
+                    </Grid>
                 </Grid>
             </Fragment>
         );
@@ -429,39 +520,7 @@ function LatestCurrentAlert() {
         <Fragment>
             <Container fixed>
                 <Grid container spacing={2}>
-                    <CurrentAlertArea leo={leo} classes={classes} />
-                </Grid>
-                <Grid container justify="center" className={classes.menu_functions}>
-                    <Grid item xs={3}>
-
-                    </Grid>
-                    <Grid item xs={2} align="center" >
-                        <Fab variant="extended"
-                            color="primary"
-                            aria-label="add" className={classes.button_fluid}
-                            onClick={() => { sendEmail() }}>
-                            Email
-                        </Fab>
-                    </Grid>
-                    <Grid item xs={2} align="center">
-                        <Fab variant="extended"
-                            color="primary"
-                            aria-label="add" className={classes.button_fluid}
-                            onClick={() => { download() }}>
-                            Download
-                        </Fab>
-                    </Grid>
-                    <Grid item xs={2} align="center">
-                        <Fab variant="extended"
-                            color="primary"
-                            aria-label="add" className={classes.button_fluid}
-                            onClick={() => { print() }}>
-                            Print
-                        </Fab>
-                    </Grid>
-                    <Grid item xs={3}>
-
-                    </Grid>
+                    <CurrentAlertArea leo={leo} classes={classes} actions={{sendEmail, download, print}} />
                 </Grid>
             </Container>
             {modal}

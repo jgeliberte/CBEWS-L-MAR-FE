@@ -412,21 +412,21 @@ function SubsurfacePlot(props) {
         );
     }
     
-    const downloadGraph = () => {
-        setModal([<TransitionalModal status={true} />])
-        setTimeout(() => {
-            setModal([<TransitionalModal status={false} />])
-            alert("Download success!")
-        }, 3000)
-    }
+    // const downloadGraph = () => {
+    //     setModal([<TransitionalModal status={true} />])
+    //     setTimeout(() => {
+    //         setModal([<TransitionalModal status={false} />])
+    //         alert("Download success!")
+    //     }, 3000)
+    // }
 
-    const printGraph = () => {
-        setModal([<TransitionalModal status={true} />])
-        setTimeout(() => {
-            setModal([<TransitionalModal status={false} />])
-            alert("Print success!")
-        }, 3000)
-    }
+    // const printGraph = () => {
+    //     setModal([<TransitionalModal status={true} />])
+    //     setTimeout(() => {
+    //         setModal([<TransitionalModal status={false} />])
+    //         alert("Print success!")
+    //     }, 3000)
+    // }
 
     const displayPlot = (data) => {
         let ret_val = []
@@ -461,7 +461,7 @@ function SubsurfacePlot(props) {
                                 </Paper>
                             </Grid>
                         }
-                        <Grid container align="center" style={{ paddingTop: 20 }}>
+                        {/* <Grid container align="center" style={{ paddingTop: 20 }}>
                             <Grid item xs={3} />
                             <Grid item xs={3}>
                                 <Fab variant="extended"
@@ -480,7 +480,7 @@ function SubsurfacePlot(props) {
                                 </Fab>
                             </Grid>
                             <Grid item xs={3} />
-                        </Grid>
+                        </Grid> */}
                     </Grid>
                 </div>
             </Container>

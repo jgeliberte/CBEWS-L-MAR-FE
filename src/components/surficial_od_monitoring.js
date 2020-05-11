@@ -20,6 +20,12 @@ import {
 import MomentUtils from '@date-io/moment';
 import moment from "moment";
 import AppConfig from '../reducers/AppConfig';
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert from '@material-ui/lab/Alert';
+
+function Alert(props) {
+	return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 
 const tableStyle = makeStyles(theme => ({
     root: {
@@ -43,7 +49,7 @@ const default_vars = {
     "alert_level": 1,
     "reason": "",
     "reporter": "",
-    "site_id": 29,
+    "site_id": AppConfig.CONFIG.site_id,
     "ts": moment().format("YYYY-MM-DD hh:mm:ss")
 }
 
@@ -55,6 +61,10 @@ function ODMonitoring() {
     const [rows, setRows] = useState([]);
     const [openRaise, setOpenRaise] = React.useState(false);
     const [od_input, setODInput] = useState(default_vars);
+
+    const [openNotif, setOpenNotif] = useState(false);
+    const [notifText, setNotifText] = useState("");
+    const [notifStatus, setNotifStatus] = useState('success');
 
     useEffect(() => {
         fetchODData();
@@ -75,7 +85,12 @@ function ODMonitoring() {
                 console.log("response", response);
                 setRows(response.data);
             }
-        }).catch(error => console.error(error));
+        }).catch(error => {
+            console.error(error);
+            setNotifStatus("error");
+            setNotifText("Failure on fetching on demand data");
+            setOpenNotif(true);
+        });
     }
 
     const handleClickOpen = () => {
@@ -86,7 +101,8 @@ function ODMonitoring() {
       setOpen(false);
     };
 
-    const handleClickOpenRaise = () => {
+    const handleClickOpenRaise = row => () => {
+      setODInput(row);
       setOpenRaise(true);
     };
   
@@ -124,11 +140,52 @@ function ODMonitoring() {
                     console.log(response);
                     handleClose();
                     setODInput(default_vars);
+                    setNotifStatus("success");
+                    setNotifText("Successfully added on demand data");
+                    setOpenNotif(true);
                     fetchODData();
                 }
-                alert(message);
             })
-            .catch(error => console.error(error));
+            .catch(error => {
+                setNotifStatus("error");
+                setNotifText("Error in adding on demand data. Please contact the developers.");
+                setOpenNotif(true);
+                console.error(error);
+            });
+    }
+
+    const handleRaise = () => {
+        console.log("raise_input", od_input);
+        fetch(`${AppConfig.HOSTNAME}/api/ground_data/on_demand/raise`, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "site_id": AppConfig.CONFIG.site_id,
+                "timestamp": od_input.ts
+            }),
+        }).then(response => response.json())
+            .then(response => {
+                const { message } = response;
+                if (response.ok) {
+                    console.log(response);
+                    handleClose();
+                    setNotifStatus("success");
+                    setNotifText("Successfully raised on demand data");
+                    setOpenNotif(true);
+                    setODInput(default_vars);
+                }
+            })
+            .catch(error => {
+                setODInput(default_vars);
+                setNotifStatus("error");
+                setNotifText("Error in raising on demand data. Please contact the developers.");
+                setOpenNotif(true);
+                console.error(error);
+            })
+            .finally(() => setOpenRaise(false));
     }
 
     return (
@@ -149,7 +206,7 @@ function ODMonitoring() {
                             </TableHead>
                             <TableBody>
                                 {rows.map(row => (
-                                    <TableRow key={row.ts} onClick={handleClickOpenRaise}>
+                                    <TableRow key={row.ts} onClick={handleClickOpenRaise(row)}>
                                         <TableCell component="th" scope="row">
                                             {row.ts}
                                         </TableCell>
@@ -276,27 +333,36 @@ function ODMonitoring() {
 
 
         <Dialog
-                open={openRaise}
-                onClose={handleCloseRaise}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">{"Raise On-demand monitoring?"}</DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        Are you sure you want to raise this alert?
-            </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseRaise} color="primary">
-                        Cancel
-            </Button>
-                    <Button onClick={handleCloseRaise} color="primary" autoFocus>
-                        Confirm
-            </Button>
-                </DialogActions>
-            </Dialog>
+            open={openRaise}
+            onClose={handleCloseRaise}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+        >
+            <DialogTitle id="alert-dialog-title">{"Raise On-demand monitoring?"}</DialogTitle>
+            <DialogContent>
+                <DialogContentText id="alert-dialog-description">
+                    Are you sure you want to raise this alert?
+                </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={handleCloseRaise} color="primary">
+                    Cancel
+                </Button>
+                <Button onClick={handleRaise} color="primary" autoFocus>
+                    Confirm
+                </Button>
+            </DialogActions>
+        </Dialog>
 
+        <Snackbar open={openNotif} 
+            autoHideDuration={3000} 
+            onClose={() => {setOpenNotif(false)}}
+            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            key={'top,right'}>
+            <Alert onClose={() => {setOpenNotif(false)}} severity={notifStatus}>
+                {notifText}
+            </Alert>
+        </Snackbar>
 
     </Fragment>
     )

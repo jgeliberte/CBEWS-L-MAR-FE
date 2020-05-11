@@ -26,7 +26,10 @@ const useStyles = makeStyles(theme => ({
     alert_level_0: {
         color: 'green'
     },
-    alert_level_1_2: {
+    alert_level_1: {
+        color: 'blue'
+    },
+    alert_level_2: {
         color: '#f09e01'
     },
     alert_level_3: {
@@ -59,6 +62,21 @@ const useStyles = makeStyles(theme => ({
       },
     thumbnailTitle: {
         background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0) 100%)'
+    },
+
+    fabGreen: {
+        background: 'green',
+        color: 'white',
+        fontWeight: 'bold'
+    },
+    fabRed: {
+        background: 'red',
+        color: 'black',
+        fontWeight: 'bold'
+    },
+
+    releaseEwiButton: {
+        height: '130%'
     }
 }));
 
